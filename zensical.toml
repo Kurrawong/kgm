@@ -29,7 +29,7 @@ nav = [
 ]
 
 [project.theme]
-logo = "assets/kgm-logo.svg"
+logo = "assets/logo-kgm.svg"
 favicon = "assets/kgm-favicon.svg"
 features = [
     "content.code.copy",

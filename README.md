@@ -1,3 +1,5 @@
+![](/docs/assets/logo-kgm.svg)
+
 # KGM
 
 KGM is a tool that performs data management functions for [Knowledge Graphs](https://en.wikipedia.org/wiki/Knowledge_graph) and with [RDF](https://en.wikipedia.org/wiki/Resource_Description_Framework) data files. 
