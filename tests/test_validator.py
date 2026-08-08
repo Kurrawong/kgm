@@ -2,9 +2,9 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from prezmanifest import validate
-from prezmanifest.cli import app
-from prezmanifest.validator import ManifestValidationError
+from kgm import validate
+from kgm.cli import app
+from kgm.validator import ManifestValidationError
 
 runner = CliRunner()
 

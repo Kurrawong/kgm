@@ -1,10 +1,13 @@
-# Prez Manifest
+# KGM
 
-Prez Manifest - pm - is a tool that performs data management functions, such as synchronising between RDF files in a version control repository and an RDF DB, and also a data model that provides the scaffolding for data to be managed by the tool. The tool is implemented as a Python application and library.
+KGM is a tool that performs data management functions for [Knowledge Graphs](https://en.wikipedia.org/wiki/Knowledge_graph)and with [RDF](https://en.wikipedia.org/wiki/Resource_Description_Framework) data files. These include synchronising 
+data loaded into KGs with RDF files in directories, obtaining labels for IRIs in KGs and more
+
+The tool is implemented as a Python command line application and code library.
 
 ## Contents
 
-* [What is a pm Manifest?](#what-is-a-pm-manifest)
+* [What is a KGM Manifest?](#what-is-a-kgm-manifest)
 * [Functions](#functions)
 * [Installation](#installation)
 * [Use](#use)
@@ -15,9 +18,10 @@ Prez Manifest - pm - is a tool that performs data management functions, such as 
 * [Case Studies](#case-studies)
 * [Manifest Data Model](#manifest-data-model)
 
-## What is a pm Manifest?
+## What is a kgm Manifest?
 
-A pm _Manifest_ is an RDF file that describes and links to a set of files, usually stored in version control, that can be validated and managed by the pm tool. Usual management goals are:
+A KGM _Manifest_ is an RDF file that describes and links to a set of files, usually stored in version control, that can 
+be validated and managed by the KGM tool. Usual management goals are:
 
 * **validation** - checking content conforms to [SHACL Shapes Graphs](https://www.w3.org/TR/shacl12-core/#shapes-graph)
 * **synchronisation** - maintaining data in an RDF DB up-to-date with files
@@ -54,13 +58,16 @@ PREFIX schema: <https://schema.org/>
 .
 ```
 
-In the file above, we have a `prez:Manifest` object which has 3 `prof:resource` instances, one for the "Catalogue Definition", the vocabularies - "Resource Data" - and "Labels". The vocabularies are shown to be conformant to the [VocPub profile of SKOS](https://linked.data.gov.au/def/vocpub/spec) which they will be validated against before any data synchronisation.
+In the file above, we have a `prez:Manifest` object which has 3 `prof:resource` instances, one for the "Catalogue 
+Definition", the vocabularies - "Resource Data" - and "Labels". The vocabularies are shown to be conformant to the 
+[VocPub profile of SKOS](https://linked.data.gov.au/def/vocpub/spec) which they will be validated against before any 
+data synchronisation.
 
-The complete data model of a pm Manifest file is online at: <https://prez.dev/manifest/>.
+The complete data model of a KGM Manifest file is online at: <https://prez.dev/manifest/>.
 
 ## Functions
 
-The functions provided my pm are discoverable by running the tool as a command line application - see [Command Line](#command-line) below - and are:
+The functions provided by KGM are discoverable by running the tool as a command line application - see [Command Line](#command-line) below - and are:
 
 * **validate**
     * performs SHACL validation on the Manifest, followed by existence checking for each resource - are they reachable
@@ -72,7 +79,7 @@ The functions provided my pm are discoverable by running the tool as a command l
       missing labels and insert them into a Manifest as an additional labelling resource
         *  [KurrawongAI's Semantic Background](#kurrawongai-semantic-background) is included as a source of labels be default 
 * **document**
-    * **table**: can create a Markdown or ASCIIDOC table of Resources from a Prez Manifest file for use in README files
+    * **table**: can create a Markdown or ASCIIDOC table of Resources from a KGM file for use in README files
       in repositories
     * **catalogue**: add the IRIs of resources within a Manifest's 'Resource Data' object to a catalogue RDF file
 * **sync**
@@ -80,7 +87,7 @@ The functions provided my pm are discoverable by running the tool as a command l
     * acts as `load` if run against an empty SPARQL Endpoint
     * does not yet load background resources
 *  **event**
-    * event-based Prez Manifests actions - for advanced systems use
+    * event-based KGMs actions - for advanced systems use
 
 ## Installation
 
@@ -89,32 +96,32 @@ command line on Linux/UNIX-like systems.
 
 ### Library
 
-It is available on [PyPI](https://pypi.org) at <https://pypi.org/project/prezmanifest/> so can be installed
+It is available on [PyPI](https://pypi.org) at <https://pypi.org/project/kgm/> so can be installed
 using [Poetry](https://python-poetry.org) or PIP etc. We do recommend [UV](https://github.com/astral-sh/uv) as that's
 the package manager we find easiest to work with.
 
 ### Command Line
 
-To make available the command line script `pm` you need to first install `UV`, see
+To make available the command line script `kgm` you need to first install `UV`, see
 the [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/), then:
 
 ```bash
-uv tool install prezmanifest
+uv tool install kgm
 ```
 
-Now you can invoke `pm` anywhere in your terminal as long as `/local/bin/` is in your `PATH`.
+Now you can invoke `kgm` anywhere in your terminal as long as `/local/bin/` is in your `PATH`.
 
 ### Latest
 
 You can also always install the latest, unstable, release from its version control
-repository: <https://github.com/Kurrawong/prez-manifest/>, but we make prezmanifest releases often, so the latest
+repository: <https://github.com/Kurrawong/kgm/>, but we make KGM releases often, so the latest
 shouldn't ever be too far ahead of the most recent release.
 
 ## Use
 
 > [!TIP]
 > See the [Case Study: Establish](#case-study-establish) below for a short description of the
-> establishment of a new catalogue using prezmanifest.
+> establishment of a new catalogue using KGM.
 
 ### Library
 
@@ -122,71 +129,71 @@ Install as above and then, in your Python code, import the functions you want to
 functions:
 
 ```python
-from prezmanifest.validator import validate
-from prezmanifest.labeller import LabellerOutputTypes, label
-from prezmanifest.documentor import table, catalogue
-from prezmanifest.loader import load
-from prezmanifest.syncer import sync
+from kgm.validator import validate
+from kgm.labeller import LabellerOutputTypes, label
+from kgm.documentor import table, catalogue
+from kgm.loader import load
+from kgm.syncer import sync
 ```
 
 ### Command Line
 
-All the functions of the library are made available as a command line application called `pm`. After installation, as
+All the functions of the library are made available as a command line application called `kgm`. After installation, as
 above, you can inspect the command line tool by asking for "help" like this:
 
 ```bash
-pm -h
+kgm -h
 ```
 
 Which will print something like this:
 
 ```bash
-Usage: pm [OPTIONS] COMMAND [ARGS]...
+Usage: kgm [OPTIONS] COMMAND [ARGS]...
 
-PrezManifest top-level Command Line Interface. Ask for help (-h) for each Command
+KGM top-level Command Line Interface. Ask for help (-h) for each Command
 
 ╭─ Options ────────────────────────────────────────────────────────────────────────╮
 │ --version  -v                                                                    │
 │ --help     -h        Show this message and exit.                                 │
 ╰──────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────╮
-│ validate  Validate the structure and content of a Prez Manifest                  │
-│ sync      Synchronize a Prez Manifest's resources with loaded copies of them in  │
+│ validate  Validate the structure and content of a KGM                  │
+│ sync      Synchronize a KGM's resources with loaded copies of them in  │
 │           a SPARQL Endpoint                                                      │
-│ label     Discover labels missing from data in a in a Prez Manifest and patch    │
+│ label     Discover labels missing from data in a in a KGM and patch    │
 │           them                                                                   │
-│ document  Create documentation from a Prez Manifest                              │
-│ load      Load a Prez Manifest's content into a file or DB                       │
-│ event     Event-based Prez Manifests actions                                     │
+│ document  Create documentation from a KGM                              │
+│ load      Load a KGM's content into a file or DB                       │
+│ event     Event-based KGMs actions                                     │
 ╰──────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 To find out more about each Command, ask for helo like this - for load:
 
 ```bash
-pm load -h
+kgm load -h
 ```
 
 > [!NOTE]
-> If (when?) pm runs into problems such as trying to synchronise resources between files and an RDF DB with missmatching version numbers, you can always run [kurra](https://github.com/kurrawong.kurra) commands to directly manage DB resources.
+> If (when?) KGM runs into problems such as trying to synchronise resources between files and an RDF DB with missmatching version numbers, you can always run [kurra](https://github.com/kurrawong.kurra) commands to directly manage DB resources.
 > 
 > For example, you can run `kurra db gsp put {FILE} {SPARQL-ENDPOINT} -g {GRAPH-NAME}` to force a replacement of the grapf, `GRAPH-NAME`, in the RDF DB with the contents of the `FILE`.
 
 #### Logging
 
-You can control the verbosity of the command line tool by setting the `PM_LOG_LEVEL` environment variable to one of
+You can control the verbosity of the command line tool by setting the `KGM_LOG_LEVEL` environment variable to one of
 Python's standard logging levels: `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `CRITICAL`. The default level is `WARNING`.
 
 For example, to see detailed debug output:
 
 ```bash
-PM_LOG_LEVEL=DEBUG pm load file my-manifest.ttl output.trig
+KGM_LOG_LEVEL=DEBUG kgm load file my-manifest.ttl output.trig
 ```
 
 Or for informational messages:
 
 ```bash
-PM_LOG_LEVEL=INFO pm validate my-manifest.ttl
+KGM_LOG_LEVEL=INFO kgm validate my-manifest.ttl
 ```
 
 > [!TIP]
@@ -199,11 +206,11 @@ loader tests to be executed as some use temporary test containers.
 
 ## Extending
 
-Many functions have been placed into `prezmanifest/utils.py` and hopefully extensions can be made to individual
+Many functions have been placed into `kgm/utils.py` and hopefully extensions can be made to individual
 functions there.
 
-For example, to extend the criteria `prezmanifest` uses to judge the newness of a local v. a remote artefacts for the
-`sync` function, see the [`compare_version_indicators()`](prezmanifest/utils.py#L397)
+For example, to extend the criteria `kgm` uses to judge the newness of a local v. a remote artefacts for the
+`sync` function, see the [`compare_version_indicators()`](kgm/utils.py#L397)
 
 ## License
 
@@ -241,22 +248,22 @@ The source of the resources' information is the CSV file `_background/datasets.c
 visit to the Indigenous Studies Unit. This CSV information was converted to RDF files in `resources/` using the custom
 script `_background/resources_make.py`.
 
-After creation of the catalogue container object's metadata and the primary resource information, prezmanifest was used
+After creation of the catalogue container object's metadata and the primary resource information, KGM was used
 to improve the presentation of the data in Prez in the following ways:
 
 1. A manifest files was created
     * based on the example in this repository in `tests/demo-vocabs/manifest.ttl`
     * the example was copy 'n pasted with only minor changes, see `manifest.ttl` in the ISU catalogue repo
-    * the initial manifest file was validated with prezmanifest/validator: `pm validate isu-catalogue/manifest.ttl`
-2. A labels file was automatically generated using prezmanifest/labeller
+    * the initial manifest file was validated with kgm/validator: `kgm validate isu-catalogue/manifest.ttl`
+2. A labels file was automatically generated using kgm/labeller
     * using the [KurrawongAI Semantic Background](https://github.com/Kurrawong/semantic-background) as a source of
       labels
-    * using the command `pm label rdf isu-catalogue/manifest.ttl http://demo.dev.kurrawong.ai/sparql > labels.ttl`
+    * using the command `kgm label rdf isu-catalogue/manifest.ttl http://demo.dev.kurrawong.ai/sparql > labels.ttl`
     * the file, `labels.ttl` was stored in the ISU Catalogue repo `_background/` folder and indicated in the manifest
       file with the role of _Incomplete Catalogue And Resource Labels_ as it doesn't provide all missing labels
-        * note that this storage could have been done automatically using the `pm label manifest` command
+        * note that this storage could have been done automatically using the `kgm label manifest` command
 3. IRIs still missing labels were determined
-    * using prezmanifest/labeller again with the command `pm label iris isu-catalogue/manifest.ttl > iris.txt`, all IRIs
+    * using kgm/labeller again with the command `kgm label iris isu-catalogue/manifest.ttl > iris.txt`, all IRIs
       still missing labels were listed
 4. Labels for remaining IRIs were manually created
     * there were only 7 important IRIs (as opposed to system objects that don't need labels) that still needed labels.
@@ -264,28 +271,28 @@ to improve the presentation of the data in Prez in the following ways:
     * the manual labels file was added to the catalogue's manifest, also with a role of _Incomplete Catalogue And
       Resource Labels_
 5. A final missing labels test was performed
-    * running `pm label iris isu-catalogue/manifest.ttl > iris.txt` again indicated no important IRIs were still missing
+    * running `kgm label iris isu-catalogue/manifest.ttl > iris.txt` again indicated no important IRIs were still missing
       labels
 6. The catalogue was enhanced
-    * `pm document catalogue isu-catalogue/manifest.ttl` was run to add all the resources of the catalogue to the
+    * `kgm document catalogue isu-catalogue/manifest.ttl` was run to add all the resources of the catalogue to the
       `catalogue.ttl` file
 7. The manifest was documented
-    * using prezmanifest/documentor, a Markdown table of the manifest's content was created using the command
-      `pm document table isu-catalogue/manifest.ttl`
+    * using kgm/documentor, a Markdown table of the manifest's content was created using the command
+      `kgm document table isu-catalogue/manifest.ttl`
     * the output of this command - a Markdown table - is visible in the ISU Catalogue repo's README file.
 8. The catalogue was prepared for upload
-    * `pm load file isu-catalogue/manifest.ttl isu-catalogue.trig` was run
+    * `kgm load file isu-catalogue/manifest.ttl isu-catalogue.trig` was run
     * it produced a single _trig_ file `isu-catalogue.trig` containing RDF graphs which was one-time uploaded to the
       database delivering the catalogue
 9. The catalogue and repo were synchronised
-    * `pm sync` was then used repeatedly to synchronise updates to the files in version control with the RDF BY read by Prez
+    * `kgm sync` was then used repeatedly to synchronise updates to the files in version control with the RDF BY read by Prez
 
 ### Case Study: Sync
 
 If I have a manifest locally, I can load it into a remote SPARQL Endpoint like this:
 
 ```bash
-pm load sparql {PATH-TO-MANIFEST} {SPARQL-ENDPOINT}
+kgm load sparql {PATH-TO-MANIFEST} {SPARQL-ENDPOINT}
 ```
 
 Going forward, I don't have to blow away all the content in the SPARQL Endpoint and reload everything whenever I have
@@ -296,10 +303,10 @@ artefact should be uploaded, teh remote one downloaded or whether there are new 
 
 The `tests/test_sync/` directory in this repository contains a _local_ and a _remote_ manifest and content. Following
 the logic in the testing function `tests/test_sync/test_sync.py::test_sync`, if the _remote_ manifest is loaded, as per
-`pm load sparql tests/test_sync/remote/manifest.ttl {SPARQL-ENDPOINT}` and then `sync` is run like this:
+`kgm load sparql tests/test_sync/remote/manifest.ttl {SPARQL-ENDPOINT}` and then `sync` is run like this:
 
 ```bash
-pm sync tests/test_sync/local/manifest.ttl {SPARQL-ENDPOINT}
+kgm sync tests/test_sync/local/manifest.ttl {SPARQL-ENDPOINT}
 ```
 
 You will see a report like this:
@@ -333,16 +340,16 @@ and so on input parameters. Setting all to `False` will cause `sync` to do nothi
 they were not set, e.g.:
 
 ```bash
-pm sync tests/test_sync/local/manifest.ttl http://localhost:3030/test/ False False False False
+kgm sync tests/test_sync/local/manifest.ttl http://localhost:3030/test/ False False False False
 ```
 
 Other than doing all this "manually" - interactively, on the command line - I might want to use `sync` in Python
 application code or cloud _infracode_ scriptin.
 
-For use in Python applications, just import prezmanifest - `uv add prezmanifest` etc. - and use, as per the use of
+For use in Python applications, just import KGM - `uv add kgm` etc. - and use, as per the use of
 `sync` in `tests/test_sync/test_sync.py::test_sync`.
 
-For use in _infracode_, note that the `pm sync` function can return the table above in JSON by setting the
+For use in _infracode_, note that the `kgm sync` function can return the table above in JSON by setting the
 `response format` input parameter, `-f`.
 
 ## Manifest Data Model
@@ -386,7 +393,7 @@ Human-readable form:
 | `mrr:CompleteContainerAndContentLabels`   | Complete Content and Container Labels   | All the labels - possibly indluding names, descriptions & seeAlso links - for the Container and Content objects     | -                              |
 | `mrr:IncompleteContainerAndContentLabels` | Incomplete Content and Container Labels | Some of the labels - possibly indluding names, descriptions & seeAlso links - for the Container and Content objects | -                              |
 
-* <https://github.com/Kurrawong/prezmanifest/blob/main/prezmanifest/mrr.ttl>
+* <https://github.com/Kurrawong/kgm/blob/main/kgm/mrr.ttl>
 
 ### Validation
 
@@ -395,26 +402,26 @@ Human-readable form:
 This [SHACL](https://www.w3.org/TR/shacl/) validator Shapes Graph file can be used by SHACL validation software such as 
 [pySHACL](https://pypi.org/project/pyshacl/), to test the validity of a Manifest's RDF file with respect to this model:
 
-* <https://github.com/Kurrawong/prezmanifest/blob/main/prezmanifest/validator.ttl>
+* <https://github.com/Kurrawong/kgm/blob/main/kgm/validator.ttl>
 
 This Shapes Graph is also loaded in to KurrawongAI's Semantic Background and is available via their validator tool 
 online and can be selected there for use via the "Use Validators" button:
 
 * <https://tools.kurrawong.ai/validate>
 
-#### pm validation
+#### KGM validation
 
 Validation beyond just SHACL is needed for an effective manifest as the `manifest.ttl` file necessarily indicates 
 other resources that must be present and correct for the whole manifest to work. To validate all aspects of a manifest,
-use the in-build PrezManifest command: `pm validate {PATH-TO-MANIFEST-FILE}`.
+use the in-build KGM command: `kgm validate {PATH-TO-MANIFEST-FILE}`.
 
 This function also validates the contents linked to in the manifest as per their [Conformance Claims](#conformance-claims).
 
-This pm validation is automatically performed before other pm commands like `sync`.
+This KGM validation is automatically performed before other KGM commands like `sync`.
 
 #### Conformance Claims
 
-A claim that some data conforms to a standard or a profile. In Prez Manifest, this is about indicating that a Resource
+A claim that some data conforms to a standard or a profile. In KGM, this is about indicating that a Resource
 is expected to conform to a standard.
 
 In the [Geoscience Australia Vocabs' manifest](https://github.com/GeoscienceAustralia/ga-vocabs/blob/master/manifest.ttl),
@@ -435,18 +442,18 @@ PREFIX prof: <http://www.w3.org/ns/dx/prof/>
 #...
 ```
 
-`pm validate` will acquire validators indicated in conformance claims, either from KurrawongAI's Semantic Background, or
+`kgm validate` will acquire validators indicated in conformance claims, either from KurrawongAI's Semantic Background, or
 from a locally-supplied SHACL validator Shapes Graph, and will validate all resources within that manifest resource with
 it. In the GA Vocabs above, all vocabulary files in the path `"vocabularies/*.ttl"` will be validated with VocPub.
 
 ### Semantic Background
 
 [KurrawongAI](https://kurrawong.ai) makes available about 100 well-known ontologies, 50 or so Shapes GRaph validators
-and many vocabularies within its _Semantic Background_, an online reference dataset of RDF content that PrezManifest can 
-access. this allows pm to acquire many labels for RDF elements within a manifest's resources and to validate resource 
+and many vocabularies within its _Semantic Background_, an online reference dataset of RDF content that KGM can
+access. this allows KGM to acquire many labels for RDF elements within a manifest's resources and to validate resource
 without the user needing to supply anything.
 
-You can see exactly what's in the Semantic Background, which is set up using PrezManifest manifests, here:
+You can see exactly what's in the Semantic Background, which is set up using KGM manifests, here:
 
 * <https://github.com/Kurrawong/semantic-background>
 

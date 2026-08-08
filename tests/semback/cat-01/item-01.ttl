@@ -3,7 +3,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 <http://example.com/dataset/1>
     a schema:Dataset ;
-    schema:citation "This catalogued item was created to test PrezManifest application code" ;
+    schema:citation "This catalogued item was created to test KGM application code" ;
     schema:creator <https://linked.data.gov.au/org/qsi> ;
     schema:dateCreated "2025-03-01"^^xsd:date ;
     schema:dateModified "2025-03-01"^^xsd:date ;

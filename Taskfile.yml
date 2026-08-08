@@ -3,7 +3,7 @@
 version: "3"
 
 env:
-  PYTHON_SRC: prezmanifest
+  PYTHON_SRC: kgm
   TESTS_DIR: tests
 
 tasks:

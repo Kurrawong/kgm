@@ -5,9 +5,9 @@ from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
 from typer.testing import CliRunner
 
-import prezmanifest.loader
-from prezmanifest.utils import *
-from prezmanifest.validator import ManifestValidationError
+import kgm.loader
+from kgm.utils import *
+from kgm.validator import ManifestValidationError
 
 runner = CliRunner()
 import httpx
@@ -112,7 +112,7 @@ def test_target_contains_this_manifests_catalogue(sparql_endpoint):
     with httpx.Client() as http_client:
         # positive test
         query(sparql_endpoint, "DROP ALL", http_client=http_client)
-        prezmanifest.loader.load(MANIFEST, sparql_endpoint)
+        kgm.loader.load(MANIFEST, sparql_endpoint)
         assert target_contains_this_manifests_catalogue(MANIFEST, sparql_endpoint)
 
         # negative test

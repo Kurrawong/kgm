@@ -6,14 +6,14 @@ import pytest
 from rdflib import RDF, SDO, Dataset, Graph, Literal, URIRef
 from rdflib.compare import isomorphic
 
-from prezmanifest import load
-from prezmanifest.definednamespaces import OLIS
-from prezmanifest.event.syncer import (
+from kgm import load
+from kgm.definednamespaces import OLIS
+from kgm.event.syncer import (
     _add_commit_hash_to_dataset,
     _generate_rdf_patch_body_add,
     _retrieve_commit_hash,
 )
-from prezmanifest.loader import ReturnDatatype
+from kgm.loader import ReturnDatatype
 
 
 def test_add_commit_hash_to_dataset():

@@ -5,8 +5,8 @@ from unittest.mock import patch
 from azure.servicebus import ServiceBusClient
 from typer.testing import CliRunner
 
-from prezmanifest.cli import app
-from prezmanifest.event.asb_client import AzureServiceBusEventClient
+from kgm.cli import app
+from kgm.event.asb_client import AzureServiceBusEventClient
 
 runner = CliRunner()
 
@@ -33,7 +33,7 @@ def test_sync_azure_service_bus(
         return original_create_event(self, payload)
 
     with patch(
-        "prezmanifest.event.asb_client.AzureServiceBusEventClient.create_event",
+        "kgm.event.asb_client.AzureServiceBusEventClient.create_event",
         spy_create_event,
     ):
         result = runner.invoke(
@@ -54,7 +54,7 @@ def test_sync_azure_service_bus(
             raise result.exception
         assert result.exit_code == 0
         assert (
-            "The Prez Manifest synchronization event has been sent to Azure Service Bus."
+            "The KGM synchronization event has been sent to Azure Service Bus."
             in result.output
         )
 

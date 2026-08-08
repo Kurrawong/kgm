@@ -9,13 +9,13 @@ from git import Repo
 from rdflib import RDF, SKOS, Graph, Literal, URIRef
 from rdflib.query import Result
 
-from prezmanifest.event.client import DeltaEventClient
-from prezmanifest.event.syncer import _rdf_patch_body_substr, sync_rdf_delta
+from kgm.event.client import DeltaEventClient
+from kgm.event.syncer import _rdf_patch_body_substr, sync_rdf_delta
 
 
 @pytest.fixture
 def repo(tmp_path: Path):
-    repo_url = "https://github.com/Kurrawong/prezmanifest.git"
+    repo_url = "https://github.com/Kurrawong/kgm.git"
     repo = Repo.clone_from(repo_url, tmp_path)
     assert repo.working_tree_dir
     assert repo.working_dir == str(tmp_path)

@@ -6,7 +6,7 @@ import httpx
 from rdflib.query import Result
 from typer.testing import CliRunner
 
-from prezmanifest.cli import app
+from kgm.cli import app
 
 runner = CliRunner()
 
@@ -32,7 +32,7 @@ def test_sync_rdf_delta(sparql_endpoint: str, delta_url: str, datasource: str):
         raise result.exception
     assert result.exit_code == 0
     assert (
-        "The Prez Manifest synchronization event has been sent to RDF Delta"
+        "The KGM synchronization event has been sent to RDF Delta"
         in result.output
     )
 

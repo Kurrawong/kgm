@@ -3,19 +3,19 @@ import shutil
 from pathlib import Path
 
 import httpx
-import prezmanifest.utils
+import kgm.utils
 from kurra.sparql import query
 from typer.testing import CliRunner
 
-from prezmanifest.loader import load
-from prezmanifest.syncer import sync, make_catalogue
-from prezmanifest.utils import artifact_file_name_from_graph_id
+from kgm.loader import load
+from kgm.syncer import sync, make_catalogue
+from kgm.utils import artifact_file_name_from_graph_id
 from rdflib import URIRef, RDF, SDO, Graph
 from rdflib.compare import isomorphic
 
 import datetime
 runner = CliRunner()
-from prezmanifest.cli import app
+from kgm.cli import app
 
 
 def test_sync(sparql_endpoint):
@@ -204,7 +204,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         ] ;
 ."""
 
-    target = prezmanifest.utils.load_graph(
+    target = kgm.utils.load_graph(
         """
         PREFIX prof: <http://www.w3.org/ns/dx/prof/>
         PREFIX schema: <https://schema.org/>
@@ -237,7 +237,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
     make_catalogue(Path(__file__).parent / "manifest-nocat.ttl", new_cat_iri="http://example.com/cat/y")
 
-    actual = prezmanifest.utils.load_graph(Path(__file__).parent / "manifest-nocat.ttl")
+    actual = kgm.utils.load_graph(Path(__file__).parent / "manifest-nocat.ttl")
 
     assert isomorphic(actual, target)
 
@@ -248,7 +248,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 
 def test_make_catalogue_new_iri():
-    original = prezmanifest.utils.load_graph(
+    original = kgm.utils.load_graph(
         """
         PREFIX schema: <https://schema.org/>
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -265,7 +265,7 @@ def test_make_catalogue_new_iri():
 
     original.serialize(format="longturtle", destination=Path(__file__).parent / "catalogue.2.ttl")
 
-    target = prezmanifest.utils.load_graph(
+    target = kgm.utils.load_graph(
         """
         PREFIX schema: <https://schema.org/>
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

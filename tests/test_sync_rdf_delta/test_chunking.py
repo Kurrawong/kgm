@@ -2,7 +2,7 @@
 
 from rdflib import RDF, Dataset, Literal, Namespace
 
-from prezmanifest.event.syncer import (
+from kgm.event.syncer import (
     _generate_rdf_patch_body_add,
     _generate_rdf_patch_body_diff,
     _rdf_patch_body_substr,

@@ -7,9 +7,9 @@ from rdflib import Graph
 from rdflib.compare import isomorphic
 from typer.testing import CliRunner
 
-from prezmanifest.cli import app
-from prezmanifest.labeller import LabellerOutputTypes, label
-from prezmanifest.validator import ManifestValidationError
+from kgm.cli import app
+from kgm.labeller import LabellerOutputTypes, label
+from kgm.validator import ManifestValidationError
 
 runner = CliRunner()
 

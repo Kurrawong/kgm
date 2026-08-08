@@ -311,6 +311,52 @@ wheels = [
 ]
 
 [[package]]
+name = "kgm"
+version = "1.2.13a0"
+source = { editable = "." }
+dependencies = [
+    { name = "dateutils" },
+    { name = "gitpython" },
+    { name = "kurra" },
+    { name = "rdf-delta" },
+    { name = "rdflib" },
+    { name = "typer" },
+]
+
+[package.optional-dependencies]
+azure = [
+    { name = "azure-servicebus" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "testcontainers" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "azure-servicebus", marker = "extra == 'azure'", specifier = ">=7.14.3" },
+    { name = "dateutils", specifier = ">=0.6.12" },
+    { name = "gitpython", specifier = ">=3.1.45" },
+    { name = "kurra", specifier = ">=3.0.4" },
+    { name = "rdf-delta", specifier = ">=0.2.5" },
+    { name = "rdflib", specifier = ">=7.6.0" },
+    { name = "typer", specifier = ">=0.15.1,<0.16" },
+]
+provides-extras = ["azure"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=25.1.0" },
+    { name = "pytest", specifier = ">=8.3.4,<9" },
+    { name = "ruff", specifier = ">=0.9.4" },
+    { name = "testcontainers", specifier = ">=4.9.0,<5" },
+]
+
+[[package]]
 name = "kurra"
 version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -438,52 +484,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/79/45/b0847d88d6cfeb4413566738c8bbf1e1995fad3d42515327ff32cc1eb578/prettytable-3.17.0.tar.gz", hash = "sha256:59f2590776527f3c9e8cf9fe7b66dd215837cca96a9c39567414cbc632e8ddb0", size = 67892, upload-time = "2025-11-14T17:33:20.212Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/8c/83087ebc47ab0396ce092363001fa37c17153119ee282700c0713a195853/prettytable-3.17.0-py3-none-any.whl", hash = "sha256:aad69b294ddbe3e1f95ef8886a060ed1666a0b83018bbf56295f6f226c43d287", size = 34433, upload-time = "2025-11-14T17:33:19.093Z" },
-]
-
-[[package]]
-name = "prezmanifest"
-version = "1.2.12a0"
-source = { editable = "." }
-dependencies = [
-    { name = "dateutils" },
-    { name = "gitpython" },
-    { name = "kurra" },
-    { name = "rdf-delta" },
-    { name = "rdflib" },
-    { name = "typer" },
-]
-
-[package.optional-dependencies]
-azure = [
-    { name = "azure-servicebus" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "black" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "testcontainers" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "azure-servicebus", marker = "extra == 'azure'", specifier = ">=7.14.3" },
-    { name = "dateutils", specifier = ">=0.6.12" },
-    { name = "gitpython", specifier = ">=3.1.45" },
-    { name = "kurra", specifier = ">=3.0.4" },
-    { name = "rdf-delta", specifier = ">=0.2.5" },
-    { name = "rdflib", specifier = ">=7.6.0" },
-    { name = "typer", specifier = ">=0.15.1,<0.16" },
-]
-provides-extras = ["azure"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black", specifier = ">=25.1.0" },
-    { name = "pytest", specifier = ">=8.3.4,<9" },
-    { name = "ruff", specifier = ">=0.9.4" },
-    { name = "testcontainers", specifier = ">=4.9.0,<5" },
 ]
 
 [[package]]

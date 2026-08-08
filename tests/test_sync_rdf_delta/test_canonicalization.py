@@ -1,6 +1,6 @@
 from rdflib import RDF, SDO, SKOS, BNode, Dataset, Literal, Namespace
 
-from prezmanifest.event.syncer import _generate_rdf_patch_body_diff
+from kgm.event.syncer import _generate_rdf_patch_body_diff
 
 EX = Namespace("https://example.com/")
 

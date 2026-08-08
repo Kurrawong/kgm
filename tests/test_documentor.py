@@ -6,9 +6,9 @@ from kurra.utils import load_graph
 from rdflib.compare import isomorphic
 from typer.testing import CliRunner
 
-from prezmanifest.cli import app
-from prezmanifest.documentor import TableFormats, catalogue, table
-from prezmanifest.validator import ManifestValidationError
+from kgm.cli import app
+from kgm.documentor import TableFormats, catalogue, table
+from kgm.validator import ManifestValidationError
 
 runner = CliRunner()
 
@@ -187,7 +187,7 @@ def test_catalogue_cli():
             schema:creator <https://kurrawong.ai> ;
             schema:dateCreated "2023"^^xsd:gYear ;
             schema:dateModified "2024-10-16"^^xsd:date ;
-            schema:description "A testing catalogue for the Prez Manifest Loader tool" ;
+            schema:description "A testing catalogue for the KGM Loader tool" ;
             schema:hasPart
                 <https://example.com/demo-vocabs/image-test> ,
                 <https://example.com/demo-vocabs/language-test> ;

@@ -1,7 +1,7 @@
 [project]
-name = "prezmanifest"
+name = "kgm"
 version = "1.2.13a"
-description = "A Python package that provides a series of functions to work with Prez Manifests."
+description = "A Python package that provides a series of functions to work with KGMs."
 authors = [{ name = "Nicholas Car", email = "nick@kurrawong.ai" }]
 requires-python = ">=3.12,<4.0"
 readme = "README.md"
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pm = "prezmanifest.cli:app"
+kgm = "kgm.cli:app"
 
 [project.optional-dependencies]
 azure = [

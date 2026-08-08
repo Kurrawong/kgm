@@ -8,7 +8,7 @@ from kurra.sparql import query
 from rdflib import Dataset, URIRef
 from typer.testing import CliRunner
 
-from prezmanifest.loader import ReturnDatatype, load
+from kgm.loader import ReturnDatatype, load
 
 runner = CliRunner()
 
