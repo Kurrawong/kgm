@@ -34,6 +34,14 @@ tasks:
     cmds:
       - uv run pytest $TESTS_DIR -rP
 
+  docs-serve:
+    desc: Preview the documentation site locally.
+    cmd: uv run zensical serve
+
+  docs-build:
+    desc: Build the documentation site.
+    cmd: uv run zensical build --clean
+
   fusekiup:
     cmd: docker compose up -d
 

@@ -1,0 +1,52 @@
+[project]
+site_name = "kgm"
+site_url = "https://kurrawong.github.io/kgm/"
+site_description = "Knowledge graph and RDF manifest management with Python and the command line"
+docs_dir = "docs"
+repo_url = "https://github.com/Kurrawong/kgm"
+repo_name = "Kurrawong/kgm"
+nav = [
+    { "Home" = "index.md" },
+    { "Guide" = [
+        { "Manifests" = "guide/manifests.md" },
+        { "Command Line" = "guide/command-line.md" },
+        { "Library" = "guide/library.md" },
+    ] },
+    { "API reference" = [
+        { "Overview" = "api/index.md" },
+        { "Documentor" = "api/documentor.md" },
+        { "Labeller" = "api/labeller.md" },
+        { "Loader" = "api/loader.md" },
+        { "Syncer" = "api/syncer.md" },
+        { "Validator" = "api/validator.md" },
+        { "Utilities" = "api/utils.md" },
+        { "Defined namespaces" = "api/definednamespaces.md" },
+        { "Events" = [
+            { "Clients" = "api/event/client.md" },
+            { "Synchronisation" = "api/event/syncer.md" },
+        ] },
+    ] },
+]
+
+[project.theme]
+logo = "assets/kgm-logo.svg"
+favicon = "assets/kgm-favicon.svg"
+features = [
+    "content.code.copy",
+    "navigation.indexes",
+    "navigation.sections",
+    "navigation.top",
+    "search.suggest",
+]
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["."]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+members_order = "source"
+merge_init_into_class = true
+show_root_heading = true
+show_signature_annotations = true
+show_source = true
