@@ -1,6 +1,6 @@
 [project]
 name = "kgm"
-version = "2.1.0"
+version = "2.1.1"
 description = "A Python package that provides a series of functions to work with KGs & RDF files."
 authors = [{ name = "Nicholas Car", email = "nick@kurrawong.ai" }]
 requires-python = ">=3.12,<4.0"
@@ -8,7 +8,7 @@ readme = "README.md"
 license = "BSD-3-Clause"
 dependencies = [
     "kurra>=3.0.4",
-    "typer>=0.15.1,<0.16",
+    "typer>=0.27",
     "dateutils>=0.6.12",
     "gitpython>=3.1.45",
     "rdflib>=7.6.0",
