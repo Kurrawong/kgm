@@ -6,10 +6,10 @@ from kurra.db.gsp import clear, upload, delete
 from kurra.sparql import query
 from kurra.utils import load_graph
 from rdflib import Graph, URIRef, BNode, Literal
-from rdflib.namespace import DCAT, PROF, RDF, SDO
+from rdflib.namespace import DCAT, DCTERMS, PROF, RDF, SDO, SKOS
 
 import kgm.utils
-from kgm.definednamespaces import MRR
+from kgm.definednamespaces import MRR, OLIS
 from kgm.utils import (
     VersionIndicatorComparison,
     absolutise_path,
@@ -18,6 +18,7 @@ from kgm.utils import (
     store_remote_artifact_locally,
     update_local_artifact,
     which_is_more_recent,
+    SYSTEM_GRAPH_IRI
 )
 
 
@@ -29,21 +30,24 @@ def sync(
     update_local: bool = True,
     add_remote: bool = True,
     add_local: bool = True,
+    add_to_system_graph: bool = True,
 ) -> dict:
     """Syncronises a set of resources in files or storage locations - from - described by a Manifest with a SPARQL Endpoint
     - to.
 
     Args:
-        manifest: the KGM manifest describing the 'from' resources
+        manifest: the KGM manifest describing the local resources
         sparql_endpoint: a SPARQL endpoint URL to sync resources to
         http_client: an httpx client to use for making requests
-        update_remote: whether to update the to artifacts with newer from ones
-        update_local: whether to update the from artifacts with newer to ones
-        add_remote: whether to add artifacts to the to location with newer from ones
-        add_local: whether to add artifacts to the from location with newer to ones
+        update_remote: whether to update the remote artifacts with newer local ones
+        update_local: whether to update the local artifacts with newer remote ones
+        add_remote: whether to add local artifacts to the remote location if missing
+        add_local: whether to add remote artifacts locally  from the remote location if missing
+        add_to_system_graph: whether to register synchronized resources and their
+            catalogue in the target's system graph
 
     Returns:
-        a dictionary of the state of syncronisation, per artifact
+        a dictionary of the state of synchronisation, per artifact
     """
 
     # list all from resources
@@ -206,6 +210,49 @@ def sync(
             cat_artifact_path,
             cat_iri,
             False,
+            http_client=http_client,
+        )
+
+    if add_to_system_graph:
+        system_graph = Graph()
+
+        catalogue_name = str(cat_iri)
+        if cat_artifact_path is not None:
+            catalogue_graph = load_graph(cat_artifact_path)
+            catalogue_name = catalogue_graph.value(
+                subject=cat_iri,
+                predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
+            ) or catalogue_name
+
+        catalogue_metadata_iri = URIRef(f"{cat_iri}-metadata")
+        system_graph.add((catalogue_metadata_iri, RDF.type, OLIS.RealGraph))
+        system_graph.add(
+            (catalogue_metadata_iri, SDO.name, Literal(f"{catalogue_name} Metadata"))
+        )
+        system_graph.add((cat_iri, RDF.type, OLIS.VirtualGraph))
+        system_graph.add((cat_iri, SDO.name, Literal(catalogue_name)))
+
+        for artifact_path, artifact in artifacts.items():
+            if artifact["role"] != MRR.ResourceData or not artifact["sync"]:
+                continue
+
+            resource_iri = artifact["main_entity"]
+            resource_name = str(resource_iri)
+            resource_graph = load_graph(absolutise_path(artifact_path, manifest_root))
+            resource_name = resource_graph.value(
+                subject=resource_iri,
+                predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
+            ) or resource_name
+
+            system_graph.add((resource_iri, RDF.type, OLIS.RealGraph))
+            system_graph.add((resource_iri, SDO.name, Literal(resource_name)))
+            system_graph.add((cat_iri, OLIS.includes, resource_iri))
+
+        upload(
+            sparql_endpoint,
+            system_graph,
+            SYSTEM_GRAPH_IRI,
+            True,
             http_client=http_client,
         )
 

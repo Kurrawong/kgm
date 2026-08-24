@@ -52,6 +52,7 @@ KNOWN_ENTITY_CLASSES = [
     URIRef("http://www.w3.org/ns/shacl#ShapesGraph"),
 ]
 
+SYSTEM_GRAPH_IRI = URIRef("https://olis.dev/system")
 
 def path_or_url(s: str) -> Path | str:
     """Converts a string into a Path, preserving http(s)://..."""

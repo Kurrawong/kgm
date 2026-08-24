@@ -363,7 +363,7 @@ wheels = [
 
 [[package]]
 name = "kgm"
-version = "2.1.0"
+version = "2.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "dateutils" },

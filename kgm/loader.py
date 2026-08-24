@@ -206,7 +206,7 @@ def load(
 
                     # add to the System Graph
                     vg.add((vg_iri, RDF.type, OLIS.VirtualGraph))
-                    vg.add((vg_iri, OLIS.isAliasFor, catalogue_iri))
+                    vg.add((vg_iri, OLIS.includes, catalogue_iri))
                     vg_name = catalogue_graph.value(  # type: ignore
                         subject=vg_iri,
                         predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
@@ -269,7 +269,7 @@ def load(
                                     f"Could not determine Resource IRI for file {f}"
                                 )
 
-                            vg.add((vg_iri, OLIS.isAliasFor, resource_iri))
+                            vg.add((vg_iri, OLIS.includes, resource_iri))
 
                             # export one Resource
                             _export(
@@ -285,7 +285,7 @@ def load(
                             d.parse(f)
                             for g in d.graphs():
                                 if g.identifier != URIRef("urn:x-rdflib:default"):
-                                    vg.add((vg_iri, OLIS.isAliasFor, g.identifier))
+                                    vg.add((vg_iri, OLIS.includes, g.identifier))
                             _export(
                                 data=d,
                                 iri=None,

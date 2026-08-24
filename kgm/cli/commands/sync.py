@@ -1,5 +1,6 @@
 import collections
 import json
+from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
@@ -10,6 +11,11 @@ from kgm.cli.app import app
 from kgm.cli.console import console
 from kgm.syncer import sync
 from kgm.utils import make_httpx_client
+
+
+class BooleanValue(str, Enum):
+    true = "true"
+    false = "false"
 
 
 @app.command(
@@ -44,6 +50,12 @@ def sync_command(
         "-f",
         help="The response format of the SPARQL query. Either 'table' (default) or 'json'",
     ),
+    add_to_system_graph: BooleanValue = typer.Option(
+        BooleanValue.true,
+        "--add-to-system-graph",
+        "-a",
+        help="Add synchronized resources to the target system graph (true or false)",
+    ),
 ) -> None:
     r = sync(
         manifest,
@@ -53,6 +65,7 @@ def sync_command(
         update_local,
         add_remote,
         add_local,
+        add_to_system_graph == BooleanValue.true,
     )
 
     if response_format == "json":

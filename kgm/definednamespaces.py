@@ -24,7 +24,7 @@ class OLIS(DefinedNamespace):
     SystemGraph: URIRef
     VirtualGraph: URIRef
 
-    isAliasFor: URIRef
+    includes: URIRef
 
 
 class PREZ(DefinedNamespace):

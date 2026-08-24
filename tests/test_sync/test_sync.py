@@ -8,9 +8,10 @@ from kurra.sparql import query
 from typer.testing import CliRunner
 
 from kgm.loader import load
+from kgm.definednamespaces import OLIS
 from kgm.syncer import sync, make_catalogue
 from kgm.utils import artifact_file_name_from_graph_id
-from rdflib import URIRef, RDF, SDO, Graph
+from rdflib import URIRef, RDF, SDO
 from rdflib.compare import isomorphic
 
 import datetime
@@ -38,6 +39,19 @@ def test_sync(sparql_endpoint):
         MANIFEST_FILE_LOCAL,
         sparql_endpoint,
     )
+
+    catalogue_iri = URIRef("https://example.com/sync-test")
+    for triple in (
+        f"<{catalogue_iri}> a <{OLIS.VirtualGraph}>",
+        f"<{catalogue_iri}-metadata> a <{OLIS.RealGraph}>",
+        f"<{catalogue_iri}> <{OLIS.includes}> <http://example.com/dataset/1>",
+    ):
+        assert query(
+            sparql_endpoint,
+            f"ASK {{ GRAPH <https://olis.dev/system> {{ {triple} }} }}",
+            return_format="python",
+            return_bindings_only=True,
+        )
 
     # check status before sync
     assert a[str(MANIFEST_ROOT / "artifacts/artifact1.ttl")]["direction"] == "same"
@@ -103,6 +117,28 @@ def test_sync_cli(sparql_endpoint):
         runner.invoke(app, ["sync", str(MANIFEST_FILE_REMOTE), sparql_endpoint]).stdout
     )
     assert "Main Entity" in raw_output
+
+    # ensure that with -a false, the System Graph is not created and added to
+    query(sparql_endpoint, "DROP GRAPH <https://olis.dev/system>")
+    result = runner.invoke(
+        app,
+        [
+            "sync",
+            str(MANIFEST_FILE_REMOTE),
+            sparql_endpoint,
+            "-a",
+            "false",
+            "-f",
+            "json",
+        ],
+    )
+    assert result.exit_code == 0
+    assert not query(
+        sparql_endpoint,
+        "ASK { GRAPH <https://olis.dev/system> { ?s ?p ?o } }",
+        return_format="python",
+        return_bindings_only=True,
+    )
 
 
 def test_sync_sync_predicate(sparql_endpoint):
