@@ -13,6 +13,7 @@ Run this script with the -h flag for more help, i.e. ~$ python loader.py -h
 """
 
 import sys
+import warnings
 from enum import Enum
 from getpass import getpass
 from pathlib import Path
@@ -41,6 +42,12 @@ def load(
     """Loads a catalogue of data from a Manifest file, whose content are valid according to the KGM Model
     (https://kurrawong.github.io/prez.dev/manifest/) either into a specified quads file in the Trig format, or into a
     given SPARQL Endpoint."""
+
+    warnings.warn(
+        "load() is deprecated; use sync() instead. load() will be removed in kgm v3.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     if not isinstance(return_data_type, ReturnDatatype):
         raise ValueError(

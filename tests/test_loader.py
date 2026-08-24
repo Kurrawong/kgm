@@ -22,7 +22,11 @@ def test_load_delegates_to_sync(monkeypatch):
     monkeypatch.setattr("kgm.loader.sync", fake_sync)
 
     manifest = Path("manifest.ttl")
-    result = load(manifest, sparql_endpoint="https://example.com/sparql")
+    with pytest.warns(
+        DeprecationWarning,
+        match=r"use sync\(\) instead.*removed in kgm v3",
+    ):
+        result = load(manifest, sparql_endpoint="https://example.com/sparql")
 
     assert result == {"delegated": True}
     assert calls[0][0:2] == (manifest, "https://example.com/sparql")
