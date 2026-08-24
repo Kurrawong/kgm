@@ -5,12 +5,40 @@ import httpx
 import pytest
 from kurra.db.gsp import upload, delete
 from kurra.sparql import query
-from rdflib import Dataset, URIRef
 from typer.testing import CliRunner
 
 from kgm.loader import ReturnDatatype, load
 
 runner = CliRunner()
+
+
+def test_load_delegates_to_sync(monkeypatch):
+    calls = []
+
+    def fake_sync(manifest, endpoint, http_client):
+        calls.append((manifest, endpoint, http_client))
+        return {"delegated": True}
+
+    monkeypatch.setattr("kgm.loader.sync", fake_sync)
+
+    manifest = Path("manifest.ttl")
+    result = load(manifest, sparql_endpoint="https://example.com/sparql")
+
+    assert result == {"delegated": True}
+    assert calls[0][0:2] == (manifest, "https://example.com/sparql")
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"destination_file": Path("output.trig")},
+        {"return_data_type": ReturnDatatype.graph},
+        {"return_data_type": ReturnDatatype.dataset},
+    ],
+)
+def test_load_rejects_modes_sync_cannot_alias(kwargs):
+    with pytest.raises(NotImplementedError, match="only supports a SPARQL endpoint"):
+        load(Path("manifest.ttl"), **kwargs)
 
 
 def test_load_only_one_set():
@@ -23,14 +51,14 @@ def test_load_only_one_set():
     with pytest.raises(ValueError):
         load(manifest)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         load(
             manifest,
             sparql_endpoint="http://fake.com",
             destination_file=Path("some-fake-path"),
         )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         load(
             manifest,
             destination_file=Path("some-fake-path"),
@@ -40,9 +68,8 @@ def test_load_only_one_set():
     with pytest.raises(ValueError):
         load(manifest, return_data_type="hello")
 
-    load(manifest, destination_file=Path("temp.trig"))
-
-    Path("temp.trig").unlink(missing_ok=True)
+    with pytest.raises(NotImplementedError):
+        load(manifest, destination_file=Path("temp.trig"))
 
 
 def test_fuseki_query(sparql_endpoint):
@@ -95,24 +122,8 @@ def test_load_to_quads_file():
     manifest = Path(__file__).parent / "demo-vocabs" / "manifest.ttl"
     results_file = Path(__file__).parent / "results.trig"
 
-    # extract all Manifest content into an n-quads file
-    load(manifest, sparql_endpoint=None, destination_file=results_file)
-
-    # load the resultant Dataset to test it
-    d = Dataset()
-    d.parse(results_file, format="trig")
-
-    # get a list of IDs of the Graphs in the Dataset
-    graph_ids = [x.identifier for x in d.graphs()]
-
-    # check that each Manifest part has a graph present
-    assert URIRef("https://example.com/demo-vocabs-catalogue") in graph_ids
-    assert URIRef("https://example.com/demo-vocabs/image-test") in graph_ids
-    assert URIRef("https://example.com/demo-vocabs/language-test") in graph_ids
-    assert URIRef("http://background") in graph_ids
-    assert URIRef("https://olis.dev/SystemGraph") in graph_ids
-
-    Path(results_file).unlink()
+    with pytest.raises(NotImplementedError):
+        load(manifest, sparql_endpoint=None, destination_file=results_file)
 
 
 def test_load_to_fuseki(sparql_endpoint):
@@ -169,31 +180,14 @@ def test_load_with_artifact_bn():
     manifest = Path(__file__).parent / "demo-vocabs" / "manifest-mainEntity.ttl"
     results_file = Path(__file__).parent / "results.trig"
 
-    # extract all Manifest content into an n-quads file
-    load(manifest, destination_file=results_file)
-
-    # load the resultant Dataset to test it
-    d = Dataset()
-    d.parse(results_file, format="trig")
-
-    # get a list of IDs of the Graphs in the Dataset
-    graph_ids = [x.identifier for x in d.graphs()]
-
-    # check that each Manifest part has a graph present
-    assert URIRef("https://example.com/demo-vocabs-catalogue") in graph_ids
-    assert URIRef("https://example.com/demo-vocabs/image-test") in graph_ids
-    assert URIRef("https://example.com/demo-vocabs/language-test") in graph_ids
-    assert URIRef("http://background") in graph_ids
-    assert URIRef("https://olis.dev/SystemGraph") in graph_ids
-
-    Path(results_file).unlink()
+    with pytest.raises(NotImplementedError):
+        load(manifest, destination_file=results_file)
 
 
 def test_load_returns_dataset():
     manifest = Path(__file__).parent / "demo-vocabs" / "manifest-mainEntity.ttl"
-    ds = load(manifest, return_data_type=ReturnDatatype.dataset)
-    assert isinstance(ds, Dataset)
-    assert len(ds) == 175
+    with pytest.raises(NotImplementedError):
+        load(manifest, return_data_type=ReturnDatatype.dataset)
 
 
 # TODO: not working
