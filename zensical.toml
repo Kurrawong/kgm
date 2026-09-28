@@ -11,6 +11,7 @@ nav = [
         { "Manifests" = "guide/manifests.md" },
         { "Command Line" = "guide/command-line.md" },
         { "Library" = "guide/library.md" },
+        { "Semantic Background" = "guide/semantic-background.md" },
     ] },
     { "API reference" = [
         { "Overview" = "api/index.md" },
@@ -50,3 +51,7 @@ merge_init_into_class = true
 show_root_heading = true
 show_signature_annotations = true
 show_source = true
+
+[project.markdown_extensions]
+pymdownx.snippets = {}
+pymdownx.superfences = {} # Required for custom code blocks

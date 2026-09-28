@@ -9,7 +9,7 @@ implements functions to perform operations on them.
 The tool is implemented as a Python command line application and code library.
 
 !!! note
-    kgm is mainly maintained by [kurrawong.ai](https://kurrawong.ai) but is Open Source, so feel free to [contribute](#contributing)!
+    kgm is mainly maintained by [kurrawong.ai](https://kurrawong.ai) but is Open Source, so feel free to [contribute](#license-contributing)!
 
 ## Install
 
@@ -50,7 +50,7 @@ See the [Command Line Guide](guide/command-line.md) for more info.
 
 ### Library
 
-All of KGM's functions available via the [Command Line interface](command-line.md) are available as functions from 
+All of KGM's functions available via the [Command Line interface](guide/command-line.md) are available as functions from 
 modules within the `kgm` package. 
 
 For example, the function called by the command `kgm label` is at `kgm.labeller.label`.

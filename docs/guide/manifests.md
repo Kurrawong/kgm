@@ -60,24 +60,58 @@ kgm validate manifest.ttl
 
 ``` mermaid
 graph LR
-  Manifest --1:1-N--> Resource;
-  Resource --1:1--> artifact;
-  Resource --1:1--> role;
-  Resource --1:0-1--> name;
-  Resource --1:0-1--> decription;
+  style Manifest fill:#FF90BB,stroke:#666,stroke-width:2px
+  Manifest --1:1-N--> ResourceDescriptor;
+  style ResourceDescriptor fill:#FFC1DA,stroke:#666,stroke-width:2px
+  style artifact fill:#F8F8E1,stroke:#666,stroke-width:2px 
+  ResourceDescriptor --1:1-N--> artifact;
+  ResourceDescriptor --1:1--> hasRole;
+  ResourceDescriptor --1:0-N--> conformsTo;
+  ResourceDescriptor --1:0-1--> additionalType;
+  ResourceDescriptor --1:0-1--> sync;
+  style artifact fill:#F8F8E1,stroke:#666,stroke-width:2px  
+  artifact --1:0-N--> conformsTo;
+  artifact --1:0-1--> additionalType;
+  artifact --1:0-1--> sync;
+  artifact --1:0-1--> mainEntity;
+  artifact --1:0-1--> contentLocation;
+  style artifact fill:#F8F8E1,stroke:#666,stroke-width:2px  
+  artifact --1:0-1--> dateModified;
+  artifact --1:0-1--> versionIRI;
+  artifact --1:0-1--> version;
 ```
 
-The Manifest Model is simply a Manifest class, `prez:Manifest`, which MUST have 1 or more Resource Descriptors, `prof:ResourceDescriptor` indicated by the `prof:hasResource` predicate. 
+### Model Rules
 
-Each Resource Descriptor MUST have exactly one `prof:hasArtifact` predicate indicating an RDF literal resource (string) giving a file path or path pattern containing the resource information, relative to the manifest.
+1. An instance of the Manifest class, `prez:Manifest`, MUST have 1 or more Resource Descriptors, `prof:ResourceDescriptor` instances, indicated by the `prof:hasResource` predicate. The Manifest instance can be identified by an IRI or a Blank Node.
 
-Each Resource Descriptor MUST also have exactly one `prof:hasRole` predicate indicating a Concept from the _Manifest Resource Roles Vocabulary_.
+2. Each Resource Descriptor MUST have at least one `prof:hasArtifact` predicate indicating either an RDF literal resource (a string) containing location of the artifact or a Blank Node containing the location of the artifact indicated by the `schema:contentLocation` predicate and the IRI of the main entity within the artifact indicated by `schema:mainEntity`.
+    * See the [Main Entity](#main-entity) details below
 
-Each Resource Descriptor MAY have a `schema:name` and/r a `schema:description` predicate indicating literal resources naming and describing it.
+3. Where content location is indicated, it MUST be a file path or path pattern relative to the manifest file's location, or a URL.
+
+4. Each Resource Descriptor MUST also have exactly one `prof:hasRole` predicate indicating a Concept from the [Manifest Resource Roles Vocabulary](#manifest-resource-roles-vocabulary).
+
+5. Each Resource Descriptor MAY have a `schema:name` and/or a `schema:description` predicate indicating literal resources naming and describing it.
+
+6. A Resource, or an Artifact, MAY indicate that it (if an Artifact) or the Artifacts within it (if a Resource) conform to any number of defined Standards or Profiles of Standards, using the predicate `dcterms:conformsTo`.
+    * Validators can be indicated either by using "well known" validator IRIs or by directly indicating a path to a validator RDF file
+      * current "well known" are listed below and can be indicated using an IRI like this:
+      * `dcterms:conformsTo <WELL-KNONW-VALIDATOR-IRI> ;`
+      * other validators, such as `my-local-validator.ttl` or `http://online-validator.com/val.ttl` should be indicated using a literal, like this:
+      * `dcterms:conformsTo "path/from/manifest/root/to/my-local-validator.ttl" ;`
+    * See the [Known Validators](#known-validators) list below
+
+7. A Resource, or an Artifact, MAY indicate that it (if an Artifact) or the Artifacts within it (if a Resource) is of a specific class, using the predicate `schema:additionalType`
+    * See the [Known Classes](#known-classes) list below
+8. A Resource, or an Artifact, MAY indicate that it should not be ignored by synchronisation tooling by setting a predicate `prez:sync` to `false`
+    * See the [Indicating no action](#indicating-no-action) section below
+9. An Artifact may have "versioning information" about it indicated by use of a number of known versioning predicates
+    * see the [Artifact Versioning](#artifact-versioning) section below
 
 ### Manifest Resource Roles Vocabulary
 
-This roles vocabulary contains the allowed roles that a resource can play with respect to a Manifest.
+This roles vocabulary contains the allowed roles that a resource, descrip can play with respect to a Manifest.
 
 The IRI of this vocabulary is:
 
@@ -101,32 +135,10 @@ Human-readable form:
 
 ### Validation
 
-#### SHACL Validation
-
-This [SHACL](https://www.w3.org/TR/shacl/) validator Shapes Graph file can be used by SHACL validation software such as 
-[pySHACL](https://pypi.org/project/pyshacl/), to test the validity of a Manifest's RDF file with respect to this model:
-
-* <https://github.com/Kurrawong/kgm/blob/main/kgm/validator.ttl>
-
-This Shapes Graph is also loaded in to KurrawongAI's Semantic Background and is available via their validator tool 
-online and can be selected there for use via the "Use Validators" button:
-
-* <https://tools.kurrawong.ai/validate>
-
-#### KGM validation
-
-Validation beyond just SHACL is needed for an effective manifest as the `manifest.ttl` file necessarily indicates 
-other resources that must be present and correct for the whole manifest to work. To validate all aspects of a manifest,
-use the in-build KGM command: `kgm validate {PATH-TO-MANIFEST-FILE}`.
-
-This function also validates the contents linked to in the manifest as per their [Conformance Claims](#conformance-claims).
-
-This KGM validation is automatically performed before other KGM commands like `sync`.
-
 #### Conformance Claims
 
 A claim that some data conforms to a standard or a profile. In KGM, this is about indicating that a Resource
-is expected to conform to a standard.
+is expected to conform to a standard using the `dcterms:conformsTo` predicate.
 
 In the [Geoscience Australia Vocabs' manifest](https://github.com/GeoscienceAustralia/ga-vocabs/blob/master/manifest.ttl),
 there is a conformance claim for the vocabs to the [VocPub Profile's Validator](https://linked.data.gov.au/def/vocpub/validator)
@@ -146,17 +158,187 @@ PREFIX prof: <http://www.w3.org/ns/dx/prof/>
 #...
 ```
 
-`kgm validate` will acquire validators indicated in conformance claims, either from KurrawongAI's Semantic Background, or
+`kgm validate` will acquire validators indicated in conformance claims, either from KurrawongAI's [Known Validators](#known-validators), or
 from a locally-supplied SHACL validator Shapes Graph, and will validate all resources within that manifest resource with
 it. In the GA Vocabs above, all vocabulary files in the path `"vocabularies/*.ttl"` will be validated with VocPub.
 
-### Semantic Background
+#### Known Validators
 
-[KurrawongAI](https://kurrawong.ai) makes available about 100 well-known ontologies, 50 or so Shapes GRaph validators
-and many vocabularies within its _Semantic Background_, an online reference dataset of RDF content that KGM can
-access. this allows KGM to acquire many labels for RDF elements within a manifest's resources and to validate resource
-without the user needing to supply anything.
+KurrawongAI maintains a list of [SHACL]([SHACL](https://www.w3.org/TR/shacl/)) Shapes Graphs in our [Semantic Background](semantic-background.md) that can be access by ID within the _kurra_ and _kgm_ tools for Conformance Claims: see point 6. above.
 
-You can see exactly what's in the Semantic Background, which is set up using KGM manifests, here:
+The validators are listed in Validators Catalogue at https://github.com/Kurrawong/semantic-background/blob/main/resources/validators/catalogue.ttl, at within the "Use Validators" function of the https://tools.kurrawong.ai/validate tool and also by typing `kurra shacl listv` on the Command Line using kurra.
 
-* <https://github.com/Kurrawong/semantic-background>
+There are already 50+ validators there.
+
+#### Manifest Validator
+
+Manifest files themselves can be validated using the KGM manifest validator at:
+
+* <https://github.com/Kurrawong/kgm/blob/main/kgm/validator.ttl>
+
+#### KGM Validation
+
+Validation beyond just SHACL is needed for an effective manifest as the `manifest.ttl` file necessarily indicates 
+other resources that must be present and correct for the whole manifest to work. To validate all aspects of a manifest,
+use the in-build KGM command: `kgm validate {PATH-TO-MANIFEST-FILE}`.
+
+This function also validates the contents linked to in the manifest as per their [Conformance Claims](#conformance-claims).
+
+This KGM validation is automatically performed before other KGM commands like `sync`.
+
+
+### Known Classes
+
+Some classes of resource are commonly used in Manifests so these classea are 'built in' and do not need to be indicated within a Manifest. These classes are:
+
+* `dcat:Resource`
+* `dcat:Dataset`
+* `dcat:Catalog`
+* `owl:Ontology`
+* `schema:CreativeWork`
+* `schema:Dataset`
+* `schema:DataCatalog`
+* `skos:ConceptScheme`
+
+If an Artifact, or all the Artifacts within a Resource, are not one of these types, then extra types can be indicated as being so by use of `schema:additionalType` like this:
+
+```turtle
+[]
+    a prez:Manifest ;
+    prof:hasResource
+        # ...
+        [
+            prof:hasArtifact "resources/*.ttl" ;
+            prof:hasRole mrr:ResourceData ;
+            schema:additionalType <{A-CLASS-IRI}> ;
+        ] ,
+        # ...
+.
+```
+
+This will allow the Manifest to communicate the class of the object software should be looking for within the resource.
+
+Resources can also be indicated directly, regardless of type, see next section.
+
+### Main Entity
+
+If, for some reason, a resource is neither of one of the Known Classes nore it its class able to be indicated with `schema:additionalType`, the specific IRI of the resource can be indicated using `schema:mainEntity`. This may be needed in situations where an RDF file containing a resource also contains multiple other instance of the same class.
+
+```turtle
+[]
+    a prez:Manifest ;
+    prof:hasResource
+        # ...
+        [
+            prof:hasArtifact "resources/file1.ttl" ;
+            prof:hasRole mrr:ResourceData ;
+            schema:mainEntity <{RESOURCE-IRI}> ;
+        ] ,
+        # ...
+.
+```
+
+### Indicating no action
+
+If a Manifest wishes to list a resource but indicate it not for automatic handling by manifest tooling - perhaps it's too large to synchronise with an RDF DB - then the predicate `prez:sync` with the value `false` should be set.
+
+Here is an example of a Manifest indicating 4 spatial datasets, one of which is too large to sync:
+
+```turtle
+[]
+    a prez:Manifest ;
+    prof:hasResource
+        [
+            prof:hasArtifact "resources/*.ttl" ;  # datset1.ttl, dataset2.ttl & dataset3.ttl
+            prof:hasRole mrr:ResourceData ;
+        ] ,
+        [
+            prof:hasArtifact "resources/large/dataset4.ttl" ;
+            prof:hasRole mrr:ResourceData ;
+            prez:sync false ;
+        ] ;
+.        
+```
+
+### Artifact versioning
+
+An Artifact's version may be indicated by use of any or all of the following predicates:
+
+* `owl:versionIRI`
+* `schema:version` or `owl:versionInfo`
+* `schema:dateModified` or `dcterms:modified`
+
+If this is done, then tools, such as _kgmanifest_ that load and sync Manifest-described data, can obtain versioning information from a Manifest file, rather than by inspecting Artifacts' contents.
+
+
+## Examples
+
+### Valid
+
+A very simple valid Manifest listing a catalogue, vocabularies and a labels file:
+
+```turtle
+--8<-- "docs/assets/manifest.ttl"
+```
+
+### Invalid - no role
+
+The example above but now invalid as no role is indicated for the vocabs resource:
+
+```turtle
+--8<-- "docs/assets/manifest-invalid-01.ttl"
+```
+
+If you run `kgm validate path/to/manifest.ttl` on this Manifest file, you will get an error reported.
+
+### Invalid - location
+
+The valid example above but now invalid as the path to `catalogue.ttl` is broken:
+
+```turtle
+--8<-- "docs/assets/manifest-invalid-02.ttl"
+```
+
+If you run `kgm validate path/to/manifest.ttl` on this Manifest file, if it was real, you would get an error reported.
+
+### `mainEntity` use
+
+A snippet of a Manifest - just one value for resource - showing use of `schema:mainEntity` and `schema:contentLocation` instead of just a literal file path:
+
+```turtle
+   [
+        prof:hasArtifact
+            [
+                schema:contentLocation "vocabs/image-test.ttl" ;
+                schema:mainEntity <https://example.com/demo-vocabs/image-test> ;
+            ] ,
+            "vocabs/language-test.ttl" ;
+        prof:hasRole mrr:ResourceData ;
+    ] ,
+```
+
+### conformance claim - one
+
+A single artifact claiming conformance to the [VocPub Profile of SKOS](https://linked.data.gov.au/def/vocpub/spec):
+
+```turtle
+    prof:hasArtifact
+        [
+            schema:contentLocation "vocabs/image-test.ttl" ;
+            schema:mainEntity <https://example.com/demo-vocabs/image-test> ;
+            dcterms:conformsTo <https://linked.data.gov.au/def/vocpub/validator> ;
+        ] ,
+```
+
+### conformance claim - all
+
+A single Resource in a Manifest claiming conformance to the VocPub Profile of SKOS for all its artifacts - whatever files are in `vocabs/*.ttl`:
+
+```turtle
+    [
+        prof:hasArtifact "vocabs/*.ttl" ;
+        prof:hasRole mrr:ResourceData ;
+        # ...
+        dcterms:conformsTo <https://linked.data.gov.au/def/vocpub/validator> ;
+    ] ,
+```
