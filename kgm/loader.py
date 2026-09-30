@@ -49,6 +49,25 @@ def load(
         stacklevel=2,
     )
 
+    if not isinstance(return_data_type, ReturnDatatype):
+        raise ValueError(
+            f"Invalid return_data_type value. Must be one of {', '.join([x for x in ReturnDatatype])}"
+        )
+
+    if destination_file is not None or return_data_type != ReturnDatatype.none:
+        raise NotImplementedError(
+            "load() is now an alias for sync(), which only supports a SPARQL "
+            "endpoint; destination_file and return_data_type are not supported"
+        )
+
+    if sparql_endpoint is None:
+        raise ValueError("A sparql_endpoint must be specified")
+
+    if sparql_username and not sparql_password:
+        if not sys.stdin.isatty():
+            raise ValueError("A password must be given if a sparql username is set")
+        sparql_password = getpass()
+
     return sync(
         manifest,
         sparql_endpoint,

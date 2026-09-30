@@ -15,7 +15,15 @@ runner = CliRunner()
 def test_load_delegates_to_sync(monkeypatch):
     calls = []
 
-    def fake_sync(manifest, endpoint, http_client):
+    def fake_sync(
+            manifest,
+            endpoint,
+            http_client,
+            update_remote,
+            update_local,
+            add_remote,
+            add_local,
+            add_to_system_graph):
         calls.append((manifest, endpoint, http_client))
         return {"delegated": True}
 
