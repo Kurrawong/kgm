@@ -114,7 +114,7 @@ def test_target_contains_this_manifests_catalogue(sparql_endpoint):
     with httpx.Client() as http_client:
         # positive test
         query(sparql_endpoint, "DROP ALL", http_client=http_client)
-        kgm.loader.load(MANIFEST, sparql_endpoint)
+        kgm.loader.sync(MANIFEST, sparql_endpoint, None, True, False, True, False)
         assert target_contains_this_manifests_catalogue(MANIFEST, sparql_endpoint)
 
         # negative test

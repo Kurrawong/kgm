@@ -191,7 +191,7 @@ def target_contains_this_manifests_catalogue(
         
         ASK
         WHERE {
-          GRAPH olis:SystemGraph {
+          GRAPH olis:system {
             VALUES ?graph_type {
               olis:RealGraph 
               olis:VirtualGraph
@@ -200,6 +200,8 @@ def target_contains_this_manifests_catalogue(
           }
         }
         """.replace("xxx", cat_iri)
+
+    print(q)
 
     return query(
         sparql_endpoint,
