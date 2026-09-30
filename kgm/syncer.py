@@ -2,15 +2,16 @@ from mailbox import MMDF
 from pathlib import Path
 
 import httpx
-from kurra.db.gsp import clear, upload, delete
+from kurra.db.gsp import clear, delete, upload
 from kurra.sparql import query
 from kurra.utils import load_graph
-from rdflib import Graph, URIRef, BNode, Literal
+from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS, PROF, RDF, SDO, SKOS
 
 import kgm.utils
 from kgm.definednamespaces import MRR, OLIS
 from kgm.utils import (
+    SYSTEM_GRAPH_IRI,
     VersionIndicatorComparison,
     absolutise_path,
     denormalise_artifacts,
@@ -18,7 +19,6 @@ from kgm.utils import (
     store_remote_artifact_locally,
     update_local_artifact,
     which_is_more_recent,
-    SYSTEM_GRAPH_IRI
 )
 
 
@@ -114,7 +114,10 @@ def sync(
                 "direction": direction,
                 "sync": v["sync"],
             }
-        if v["role"] in [MRR.IncompleteCatalogueAndResourceLabels, MRR.CompleteCatalogueAndResourceLabels]:
+        if v["role"] in [
+            MRR.IncompleteCatalogueAndResourceLabels,
+            MRR.CompleteCatalogueAndResourceLabels,
+        ]:
             clear(sparql_endpoint, "http://background", http_client)
             upload(
                 sparql_endpoint,
@@ -219,10 +222,13 @@ def sync(
         catalogue_name = str(cat_iri)
         if cat_artifact_path is not None:
             catalogue_graph = load_graph(cat_artifact_path)
-            catalogue_name = catalogue_graph.value(
-                subject=cat_iri,
-                predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
-            ) or catalogue_name
+            catalogue_name = (
+                catalogue_graph.value(
+                    subject=cat_iri,
+                    predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
+                )
+                or catalogue_name
+            )
 
         catalogue_metadata_iri = URIRef(f"{cat_iri}-metadata")
         system_graph.add((catalogue_metadata_iri, RDF.type, OLIS.RealGraph))
@@ -239,10 +245,13 @@ def sync(
             resource_iri = artifact["main_entity"]
             resource_name = str(resource_iri)
             resource_graph = load_graph(absolutise_path(artifact_path, manifest_root))
-            resource_name = resource_graph.value(
-                subject=resource_iri,
-                predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
-            ) or resource_name
+            resource_name = (
+                resource_graph.value(
+                    subject=resource_iri,
+                    predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
+                )
+                or resource_name
+            )
 
             system_graph.add((resource_iri, RDF.type, OLIS.RealGraph))
             system_graph.add((resource_iri, SDO.name, Literal(resource_name)))
@@ -281,13 +290,19 @@ def make_catalogue(
 
     if reuse_cat_iri:
         if new_cat_iri is not None:
-            raise ValueError("If you select to reuse any existing catalogue 'reuse_cat_iri=True', then new_cat_iri must be None")
+            raise ValueError(
+                "If you select to reuse any existing catalogue 'reuse_cat_iri=True', then new_cat_iri must be None"
+            )
     else:
         if new_cat_iri is None:
-            raise ValueError("If you select not to reuse any existing catalogue 'reuse_cat_iri=False', then new_cat_iri must be provided")
+            raise ValueError(
+                "If you select not to reuse any existing catalogue 'reuse_cat_iri=False', then new_cat_iri must be provided"
+            )
 
         if new_cat_iri is not None:
-            new_cat_iri = URIRef(new_cat_iri) if isinstance(new_cat_iri, str) else new_cat_iri
+            new_cat_iri = (
+                URIRef(new_cat_iri) if isinstance(new_cat_iri, str) else new_cat_iri
+            )
 
     manifest_path, manifest_root, manifest_graph = get_manifest_paths_and_graph(
         manifest
@@ -295,8 +310,8 @@ def make_catalogue(
     manifest_graph: Graph
 
     # create the return graph
-    c:Graph = None
-    cat_path:Path = None
+    c: Graph = None
+    cat_path: Path = None
 
     # read, add or create the catalogue IRI
     # see if we already have one in the Manifest
@@ -324,12 +339,14 @@ def make_catalogue(
         if c is None:
             raise ValueError(
                 f"You nave selected to reuse an existing catalogue "
-                f"but no resource with CatalogueData was found in the manifest")
+                f"but no resource with CatalogueData was found in the manifest"
+            )
 
         if not cat_iri_existing:
             raise ValueError(
                 f"You nave selected to reuse an existing catalogue but an IRI for one "
-                f"could not be found in file {cat_path}")
+                f"could not be found in file {cat_path}"
+            )
         cat_iri = cat_iri_existing
     else:  # we are not reusing so scrub existing catalogue IRI and ensure at least cat declaration is present
         if c is not None:
@@ -350,14 +367,12 @@ def make_catalogue(
     c.remove((cat_iri, SDO.dateModified, None))
     c.add((cat_iri, SDO.dateModified, kgm.utils.make_dateModified()))
 
-
     # add in each resource's IRI
     artifacts = denormalise_artifacts((manifest_path, manifest_root, manifest_graph))
 
     for k, v in artifacts.items():
         if v["role"] == MRR.ResourceData:
             c.add((cat_iri, SDO.hasPart, v["main_entity"]))
-
 
     # replace catalogue entry in manifest
     if existing_cat:
@@ -370,10 +385,8 @@ def make_catalogue(
         ] ;
         """
         import os
-        cat_path_rel = os.path.relpath(
-            cat_path,
-            start=os.path.dirname(manifest_path)
-        )
+
+        cat_path_rel = os.path.relpath(cat_path, start=os.path.dirname(manifest_path))
 
         r = BNode()
         manifest_graph.add((r, PROF.hasArtifact, Literal(cat_path_rel)))
@@ -384,9 +397,7 @@ def make_catalogue(
     with open(manifest_path, "w") as f:
         f.write(manifest_graph.serialize(format="longturtle"))
 
-
     # save catalogue artifact
     c.serialize(format="longturtle", destination=cat_path)
-
 
     return c

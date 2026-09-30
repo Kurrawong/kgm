@@ -8,8 +8,8 @@ from enum import Enum
 from pathlib import Path
 
 import httpx
+from kurra.labels import find_missing_labels, get_labels
 from kurra.utils import load_graph
-from kurra.labels import get_missing_labels, find_missing_labels
 from rdflib import BNode, Graph, Literal
 from rdflib.namespace import PROF, RDF
 
@@ -46,7 +46,7 @@ def label(
     artifacts = denormalise_artifacts((manifest_path, manifest_root, manifest_graph))
 
     for k, v in artifacts.items():
-            context_graph += load_graph(k)
+        context_graph += load_graph(k)
 
     # add labels for system IRIs
     context_graph.parse(Path(__file__).parent / "system-labels.ttl")
@@ -66,7 +66,7 @@ def label(
         if additional_context is None:
             additional_context = "https://fuseki.dev.kurrawong.ai/semback/sparql"
 
-        return get_missing_labels(iris_missing_labels, additional_context, "graph", http_client)
+        return get_labels(iris_missing_labels, additional_context, "graph", http_client)
 
     else:  # output_type == LabellerOutputTypes.manifest
         # If this is selected, generate the "rdf" output and create a resource for it in the Manifest

@@ -23,9 +23,7 @@ class BooleanValue(str, Enum):
     help="Synchronize a KGM's resources with loaded copies of them in a SPARQL Endpoint",
 )
 def sync_command(
-    manifest: Path = typer.Argument(
-        ..., help="The path of the KGM file to be loaded"
-    ),
+    manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
     endpoint: str = typer.Argument(..., help="The URL of the SPARQL Endpoint"),
     update_remote: bool = typer.Argument(
         True, help="Copy more recent local artifacts to DB"

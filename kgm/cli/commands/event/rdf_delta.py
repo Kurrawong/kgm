@@ -15,9 +15,7 @@ app = typer.Typer()
     help="Synchronize a KGM's resources by sending RDF patch logs to RDF Delta.",
 )
 def event_sync_command(
-    manifest: Path = typer.Argument(
-        ..., help="The path of the KGM file to be loaded"
-    ),
+    manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
     endpoint: str = typer.Argument(..., help="The URL of the SPARQL Endpoint"),
     delta_url: str = typer.Argument(..., help="The URL of the RDF Delta endpoint"),
     delta_datasource: str = typer.Argument(

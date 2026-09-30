@@ -95,7 +95,9 @@ def test_get_manifest_paths_and_graph():
     assert len(manifest_graph) == 21
 
     with pytest.raises(ManifestValidationError):
-        extracted_file_path, manifest_root, manifest_graph = get_manifest_paths_and_graph(Path("fake"))
+        extracted_file_path, manifest_root, manifest_graph = (
+            get_manifest_paths_and_graph(Path("fake"))
+        )
 
 
 def test_get_catalogue_iri_from_manifest():
@@ -129,13 +131,11 @@ def test_get_main_entity_iri_of_artifact():
     MANIFEST = TESTS_DIR / "demo-vocabs" / "manifest-conformance.ttl"
 
     assert get_artifact_main_entity_iri(
-        MANIFEST.parent / "vocabs/image-test.ttl",
-        MANIFEST
+        MANIFEST.parent / "vocabs/image-test.ttl", MANIFEST
     ) == URIRef("https://example.com/demo-vocabs/image-test")
 
     assert get_artifact_main_entity_iri(
-        MANIFEST.parent / "vocabs/language-test.ttl",
-        MANIFEST
+        MANIFEST.parent / "vocabs/language-test.ttl", MANIFEST
     ) == URIRef("https://example.com/demo-vocabs/language-test")
 
     # specify the class in the manifest

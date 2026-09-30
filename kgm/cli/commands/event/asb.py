@@ -15,9 +15,7 @@ app = typer.Typer()
     help="Synchronize a KGM's resources by sending RDF patch logs to Azure Service Bus.",
 )
 def event_sync_command(
-    manifest: Path = typer.Argument(
-        ..., help="The path of the KGM file to be loaded"
-    ),
+    manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
     endpoint: str = typer.Argument(..., help="The URL of the SPARQL Endpoint"),
     connection: str = typer.Argument(
         ..., help="The Azure Service Bus connection string"
@@ -45,8 +43,6 @@ def event_sync_command(
     )
     try:
         sync_rdf_delta(cwd, manifest, endpoint, http_client, event_client)
-        print(
-            "The KGM synchronization event has been sent to Azure Service Bus."
-        )
+        print("The KGM synchronization event has been sent to Azure Service Bus.")
     finally:
         http_client.close()

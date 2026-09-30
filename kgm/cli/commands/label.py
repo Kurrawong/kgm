@@ -6,9 +6,7 @@ import typer
 from kgm.labeller import LabellerOutputTypes, label
 from kgm.utils import make_httpx_client
 
-app = typer.Typer(
-    help="Discover labels missing from data in a in a KGM and patch them"
-)
+app = typer.Typer(help="Discover labels missing from data in a in a KGM and patch them")
 
 
 @app.command(

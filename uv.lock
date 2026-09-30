@@ -394,7 +394,7 @@ requires-dist = [
     { name = "azure-servicebus", marker = "extra == 'azure'", specifier = ">=7.14.3" },
     { name = "dateutils", specifier = ">=0.6.12" },
     { name = "gitpython", specifier = ">=3.1.45" },
-    { name = "kurra", specifier = ">=3.0.4" },
+    { name = "kurra", specifier = ">=3.0.7" },
     { name = "rdf-delta", specifier = ">=0.2.5" },
     { name = "rdflib", specifier = ">=7.6.0" },
     { name = "typer", specifier = ">=0.27" },
@@ -413,7 +413,7 @@ dev = [
 
 [[package]]
 name = "kurra"
-version = "3.0.4"
+version = "3.0.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -424,9 +424,9 @@ dependencies = [
     { name = "sparqlib" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/50/2f/87dfb86830c973461da8f991c59973c27390daa8b5d945087989eb90a1a3/kurra-3.0.4.tar.gz", hash = "sha256:27207139a76097bcbf1da2f6bd56b5ebd5ea520487ac07d6a162f5385ce25084", size = 144901, upload-time = "2026-08-04T07:33:36.989Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/1a/9d9fae966adc57933a07564813c8a4a7db0c2c72b4caccfedb04d2d536c3/kurra-3.0.7.tar.gz", hash = "sha256:2343d0a1fbb070aa974e31cfd9ff8f7a7c6415cf5088dd614a7670cb6728cf9a", size = 254312, upload-time = "2026-09-29T05:56:30.802Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e3/1a/39200fb24d74f0371c0bf713da54021ff5d13dac3156fac39729313ef81b/kurra-3.0.4-py3-none-any.whl", hash = "sha256:24a25bbc18fcf820d36c750a433ea55a7002eadf4f96a9a7a421a8159ac46898", size = 38804, upload-time = "2026-08-04T07:33:35.876Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/28/a1ad71d4db8f0998bce8f391a147ba05839454404df8653d467b8d152825/kurra-3.0.7-py3-none-any.whl", hash = "sha256:74f63fa45ebeae988088e966f7a0d252e0d8753204bc21a5016987133ce0799d", size = 43199, upload-time = "2026-09-29T05:56:29.322Z" },
 ]
 
 [[package]]

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from kurra.db.gsp import upload, delete
+from kurra.db.gsp import delete, upload
 from kurra.sparql import query
 from rdflib import Graph
 from rdflib.compare import isomorphic
@@ -84,7 +84,7 @@ def test_label_rdf_sparql(sparql_endpoint):
     rdf = label(
         Path(__file__).parent / "demo-vocabs/manifest.ttl",
         LabellerOutputTypes.rdf,
-        sparql_endpoint
+        sparql_endpoint,
     )
 
     assert len(rdf) == 0
@@ -185,7 +185,7 @@ def test_label_iris_mainEntity():
         output_type=LabellerOutputTypes.iris,
     )
 
-    assert len(iris) == 59
+    assert len(iris) == 53
 
 
 def test_label_cli_iris():

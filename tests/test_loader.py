@@ -3,7 +3,7 @@ from pathlib import Path
 
 import httpx
 import pytest
-from kurra.db.gsp import upload, delete
+from kurra.db.gsp import delete, upload
 from kurra.sparql import query
 from typer.testing import CliRunner
 

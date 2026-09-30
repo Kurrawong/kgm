@@ -1,20 +1,20 @@
+import datetime
 import json
 import shutil
 from pathlib import Path
 
 import httpx
-import kgm.utils
 from kurra.sparql import query
+from rdflib import RDF, SDO, URIRef
+from rdflib.compare import isomorphic
 from typer.testing import CliRunner
 
-from kgm.loader import load
+import kgm.utils
 from kgm.definednamespaces import OLIS
-from kgm.syncer import sync, make_catalogue
+from kgm.loader import load
+from kgm.syncer import make_catalogue, sync
 from kgm.utils import artifact_file_name_from_graph_id
-from rdflib import URIRef, RDF, SDO
-from rdflib.compare import isomorphic
 
-import datetime
 runner = CliRunner()
 from kgm.cli import app
 
@@ -207,7 +207,9 @@ def test_sync_sync_predicate(sparql_endpoint):
 
 def test_make_catalogue():
     MANIFEST_FILE_LOCAL = Path(__file__).parent / "local/manifest.ttl"
-    c = make_catalogue(MANIFEST_FILE_LOCAL, reuse_cat_iri=False, new_cat_iri="http://example.com/cat/x")
+    c = make_catalogue(
+        MANIFEST_FILE_LOCAL, reuse_cat_iri=False, new_cat_iri="http://example.com/cat/x"
+    )
     assert (URIRef("http://example.com/cat/x"), RDF.type, SDO.DataCatalog) in c
 
     c = make_catalogue(MANIFEST_FILE_LOCAL, reuse_cat_iri=True)
@@ -269,9 +271,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                     prof:hasArtifact "catalogue.ttl" ;
                     prof:hasRole <https://prez.dev/ManifestResourceRoles/CatalogueData> ;
                 ] ;
-        .""")
+        ."""
+    )
 
-    make_catalogue(Path(__file__).parent / "manifest-nocat.ttl", new_cat_iri="http://example.com/cat/y")
+    make_catalogue(
+        Path(__file__).parent / "manifest-nocat.ttl",
+        new_cat_iri="http://example.com/cat/y",
+    )
 
     actual = kgm.utils.load_graph(Path(__file__).parent / "manifest-nocat.ttl")
 
@@ -297,9 +303,12 @@ def test_make_catalogue_new_iri():
                 <http://example.com/dataset/2> ,
                 <http://example.com/dataset/3> ;
         .
-        """.replace("{XXX}", datetime.datetime.now().isoformat()[:10]))
+        """.replace("{XXX}", datetime.datetime.now().isoformat()[:10])
+    )
 
-    original.serialize(format="longturtle", destination=Path(__file__).parent / "catalogue.2.ttl")
+    original.serialize(
+        format="longturtle", destination=Path(__file__).parent / "catalogue.2.ttl"
+    )
 
     target = kgm.utils.load_graph(
         """
@@ -319,9 +328,13 @@ def test_make_catalogue_new_iri():
                 <http://example.com/dataset/7> ,
                 <http://example.com/dataset/9> ;
         .
-        """.replace("{XXX}", datetime.datetime.now().isoformat()[:10]))
+        """.replace("{XXX}", datetime.datetime.now().isoformat()[:10])
+    )
 
-    actual = make_catalogue(Path(__file__).parent / "manifest-cat.ttl", new_cat_iri="http://example.com/cat/y")
+    actual = make_catalogue(
+        Path(__file__).parent / "manifest-cat.ttl",
+        new_cat_iri="http://example.com/cat/y",
+    )
 
     assert isomorphic(actual, target)
 
