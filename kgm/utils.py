@@ -54,6 +54,7 @@ KNOWN_ENTITY_CLASSES = [
 
 SYSTEM_GRAPH_IRI = URIRef("https://olis.dev/system")
 
+
 def path_or_url(s: str) -> Path | str:
     """Converts a string into a Path, preserving http(s)://..."""
     if s.startswith("http") and "://" in str(s):
@@ -257,13 +258,11 @@ def get_artifact_main_entity_iri(
     import os
 
     artifact_path_abs = absolutise_path(artifact, manifest_root)
-    artifact_path_rel = os.path.relpath(
-        artifact,
-        start=os.path.dirname(manifest_path)
-    )
+    artifact_path_rel = os.path.relpath(artifact, start=os.path.dirname(manifest_path))
     artifact_file = artifact.name
     # artifact_path_rel = Path(str(artifact_path_abs).replace(os.path.commonpath([artifact.parent, manifest_root]), "")) / artifact_file
-    q = ("""
+    q = (
+        """
         PREFIX prof: <http://www.w3.org/ns/dx/prof/>
         PREFIX schema: <https://schema.org/>
     
@@ -279,8 +278,9 @@ def get_artifact_main_entity_iri(
             ?bn schema:mainEntity ?iri .
         }
         """.replace("{artifact_path_abs}", str(artifact_path_abs))
-         .replace("{artifact_path_rel}", str(artifact_path_rel))
-         .replace("{artifact_file}", str(artifact_file)))
+        .replace("{artifact_path_rel}", str(artifact_path_rel))
+        .replace("{artifact_file}", str(artifact_file))
+    )
 
     for r in manifest_graph.query(q):
         return URIRef(r["iri"])
@@ -290,7 +290,9 @@ def get_artifact_main_entity_iri(
 
     # check artifact graph load
     if not isinstance(g, Graph):
-        raise ValueError(f"Could not load a graph of the artifact at {artifact_path_abs}")
+        raise ValueError(
+            f"Could not load a graph of the artifact at {artifact_path_abs}"
+        )
 
     # get Main Entity class using specified atype
     if atype is not None:
@@ -298,7 +300,8 @@ def get_artifact_main_entity_iri(
 
     # get Main Entity class via Manifest additionalType indicated
     if len(known_entity_classes) < 1:
-        q = ("""
+        q = (
+            """
             PREFIX prof: <http://www.w3.org/ns/dx/prof/>
             PREFIX schema: <https://schema.org/>
             
@@ -315,8 +318,9 @@ def get_artifact_main_entity_iri(
                 .
             }
             """.replace("{artifact_path_abs}", str(artifact_path_abs))
-             .replace("{artifact_path_rel}", str(artifact_path_rel))
-             .replace("{artifact_file}", str(artifact_file)))
+            .replace("{artifact_path_rel}", str(artifact_path_rel))
+            .replace("{artifact_file}", str(artifact_file))
+        )
 
         for r in manifest_graph.query(q):
             known_entity_classes.append(r["at"])
@@ -844,8 +848,9 @@ def get_background_graph(manifest: Path | tuple[Path, Path, Graph]) -> Graph:
     return background_graph
 
 
-def make_dateModified(time:bool = False)->Literal:
+def make_dateModified(time: bool = False) -> Literal:
     from datetime import datetime
+
     from rdflib.namespace import XSD
 
     if time:
