@@ -155,11 +155,14 @@ def test_sync_sync_predicate(sparql_endpoint):
     query(sparql_endpoint, "DROP ALL")
 
     # load it with remote data
-    load(MANIFEST_FILE_REMOTE, sparql_endpoint)
+    sync(MANIFEST_FILE_REMOTE, sparql_endpoint, None,True, False, True, False)
 
+    # synch using the local manifest
     a = sync(
         MANIFEST_FILE_LOCAL,
         sparql_endpoint,
+        None,
+        True,True, True, True
     )
 
     # check status before sync
@@ -175,7 +178,7 @@ def test_sync_sync_predicate(sparql_endpoint):
 
     # run sync again, performing no actions to just get updated status
     a = sync(
-        MANIFEST_FILE_LOCAL, sparql_endpoint, httpx.Client(), False, False, False, False
+        MANIFEST_FILE_LOCAL, sparql_endpoint, None, False, False, False, False
     )
 
     # check status after sync
@@ -186,15 +189,7 @@ def test_sync_sync_predicate(sparql_endpoint):
     assert a[str(MANIFEST_ROOT / "artifact5.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact6.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact7.ttl")]["direction"] == "same"
-    assert (
-        a[
-            str(
-                MANIFEST_ROOT
-                / artifact_file_name_from_graph_id("http://example.com/dataset/8")
-            )
-        ]["direction"]
-        == "same"
-    )
+    assert a["http://example.com/dataset/8"]["direction"] == "add-locally"
     assert a[str(MANIFEST_ROOT / "catalogue.ttl")]["direction"] == "same"
 
     # tidy up

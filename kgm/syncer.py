@@ -32,7 +32,7 @@ def sync(
     add_local: bool = True,
     add_to_system_graph: bool = True,
 ) -> dict:
-    """Syncronises a set of resources in files or storage locations - from - described by a Manifest with a SPARQL Endpoint
+    """Synchronizes a set of resources in files or storage locations - from - described by a Manifest with a SPARQL Endpoint
     - to.
 
     Args:

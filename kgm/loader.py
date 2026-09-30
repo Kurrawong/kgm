@@ -38,7 +38,7 @@ def load(
     timeout: int = 60,
     destination_file: Path = None,
     return_data_type: ReturnDatatype = ReturnDatatype.none,
-) -> None | Graph | Dataset:
+) -> dict:
     """Loads a catalogue of data from a Manifest file, whose content are valid according to the KGM Model
     (https://kurrawong.github.io/prez.dev/manifest/) either into a specified quads file in the Trig format, or into a
     given SPARQL Endpoint."""
@@ -49,27 +49,9 @@ def load(
         stacklevel=2,
     )
 
-    if not isinstance(return_data_type, ReturnDatatype):
-        raise ValueError(
-            f"Invalid return_data_type value. Must be one of {', '.join([x for x in ReturnDatatype])}"
-        )
-
-    if destination_file is not None or return_data_type != ReturnDatatype.none:
-        raise NotImplementedError(
-            "load() is now an alias for sync(), which only supports a SPARQL "
-            "endpoint; destination_file and return_data_type are not supported"
-        )
-
-    if sparql_endpoint is None:
-        raise ValueError("A sparql_endpoint must be specified")
-
-    if sparql_username and not sparql_password:
-        if not sys.stdin.isatty():
-            raise ValueError("A password must be given if a sparql username is set")
-        sparql_password = getpass()
-
     return sync(
         manifest,
         sparql_endpoint,
         make_httpx_client(sparql_username, sparql_password, timeout),
+        True, False, True, False, True
     )
