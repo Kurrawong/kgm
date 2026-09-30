@@ -77,15 +77,7 @@ def test_sync(sparql_endpoint):
     assert a[str(MANIFEST_ROOT / "artifact5.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact6.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact7.ttl")]["direction"] == "same"
-    assert (
-        a[
-            str(
-                MANIFEST_ROOT
-                / artifact_file_name_from_graph_id("http://example.com/dataset/8")
-            )
-        ]["direction"]
-        == "same"
-    )
+    assert a["http://example.com/dataset/8"]["direction"] == "add-locally"
     assert a[str(MANIFEST_ROOT / "catalogue.ttl")]["direction"] == "same"
 
     # tidy up
