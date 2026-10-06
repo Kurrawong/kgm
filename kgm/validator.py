@@ -96,6 +96,11 @@ def validate(manifest: Path) -> Graph:
                 raise ManifestValidationError(
                     f"The validator <{validator}> indicated in the manifest file is not known to the Semantic Background"
                 )
+        else:
+            if not (manifest_root / str(validator)).is_file():
+                raise ManifestValidationError(
+                    f"The validator {validator} indicated in the manifest file could not be found at {manifest_root / str(validator)}"
+                )
 
     # validate each file referenced in the Manifest
     for s, resource in manifest_graph.subject_objects(PROF.hasResource):
