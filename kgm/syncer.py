@@ -32,8 +32,11 @@ def sync(
     add_local: bool = True,
     add_to_system_graph: bool = True,
 ) -> dict:
-    """Synchronizes a set of resources in files or storage locations - from - described by a Manifest with a SPARQL Endpoint
-    - to.
+    """Synchronises the resources described by a Manifest with a SPARQL Endpoint.
+
+    Each resource is compared with its copy in the SPARQL Endpoint if existing using timestamps and version numbers. Based on selected flags, newer local resources are uploaded, newer remote ones are downloaded, and artifacts that only exist on one side are added to the other. The Catalogue and Resources can be registered in the System Graph.
+
+    To get the content sync() would retrieve locally without contacting a SPARQL Endpoint, use get_sync_dataset().
 
     Args:
         manifest: the KGM manifest describing the local resources
@@ -131,7 +134,7 @@ def sync(
     q = """
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX schema: <https://schema.org/>
-    
+
         SELECT ?p
         WHERE {
             GRAPH ?g {
@@ -231,8 +234,7 @@ def sync(
 def _make_system_graph(artifacts: dict, manifest_root: Path) -> Graph:
     """Makes the System Graph entries for a Manifest.
 
-    The Catalogue is declared as a Virtual Graph, and each synchronised Resource is declared as a Real Graph that
-    the Catalogue includes. Used by both sync() and get_dataset().
+    The Catalogue is declared as a Virtual Graph, and each synchronised Resource is declared as a Real Graph that the Catalogue includes. Used by both sync() and get_sync_dataset().
 
     Args:
         artifacts: the Manifest's artifacts, as returned by denormalise_artifacts()
@@ -291,14 +293,11 @@ def _make_system_graph(artifacts: dict, manifest_root: Path) -> Graph:
     return system_graph
 
 
-def get_dataset(
+def get_sync_dataset(
     manifest: Path | tuple[Path, Path, Graph],
     system_graph_iri: URIRef = SYSTEM_GRAPH_IRI,
 ) -> Dataset:
-    """Gets a Manifest's local content as an in-memory Dataset.
-
-    Each artifact goes into the same Named Graph that sync() would upload it to. Unlike sync(), this never contacts
-    a SPARQL Endpoint and never writes files.
+    """Gets the content sync() would upload for a Manifest as an in-memory Dataset. Unlike sync(), nothing is compared with or sent to a SPARQL Endpoint, and no local files are changed.
 
     Args:
         manifest: the KGM manifest describing the local resources
@@ -341,8 +340,8 @@ def make_catalogue(
 
     Args:
         manifest: the KGM manifest to create the catalogue for
-        cat_iri: the iri of the catalogue, if known
-        reuse: whether to reuse the IRI of an existing catalogue if defined in the manifest
+        new_cat_iri: the iri of the catalogue, if known
+        reuse_cat_iri: whether to reuse the IRI of an existing catalogue if defined in the manifest
 
     Returns:
         a simple graph of the catalogue

@@ -12,13 +12,13 @@ from kgm.event.syncer import (
     _generate_rdf_patch_body_add,
     _retrieve_commit_hash,
 )
-from kgm.syncer import get_dataset
+from kgm.syncer import get_sync_dataset
 
 
 def test_add_commit_hash_to_dataset():
     manifest = Path(__file__).parent.parent / "demo-vocabs" / "manifest-mainEntity.ttl"
     commit_hash = "1234567890"
-    ds = get_dataset(manifest, OLIS.SystemGraph)
+    ds = get_sync_dataset(manifest, OLIS.SystemGraph)
     ds = _add_commit_hash_to_dataset(commit_hash, ds)
     assert len(ds) == 182
 
