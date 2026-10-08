@@ -9,10 +9,9 @@ from rdflib import RDF, SDO, BNode, Dataset, Graph, Literal, URIRef
 from rdflib.compare import to_canonical_graph
 from rdflib.query import Result
 
-from kgm import load
 from kgm.definednamespaces import MVT, OLIS
 from kgm.event.client import EventClient
-from kgm.loader import ReturnDatatype
+from kgm.syncer import get_sync_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -245,7 +244,7 @@ def sync_rdf_delta(
     """
 
     # Load the manifest on the latest commit.
-    ds = load(manifest, return_data_type=ReturnDatatype.dataset)
+    ds = get_sync_dataset(manifest, OLIS.SystemGraph)
     system_graph = ds.graph(OLIS.SystemGraph)
     vg_iri = system_graph.value(predicate=RDF.type, object=OLIS.VirtualGraph)
     if vg_iri is None:
@@ -277,7 +276,7 @@ def sync_rdf_delta(
         logger.info(f"Checking out previous commit: {previous_commit_hash}")
         repo.git.checkout(previous_commit_hash)
         logger.info("Loading previous manifest dataset")
-        previous_ds = load(manifest, return_data_type=ReturnDatatype.dataset)
+        previous_ds = get_sync_dataset(manifest, OLIS.SystemGraph)
         logger.info("Adding commit hash to previous manifest dataset")
         _add_commit_hash_to_dataset(previous_commit_hash, previous_ds)
         logger.info("Adding commit hash to current manifest dataset")

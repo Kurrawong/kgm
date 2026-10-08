@@ -6,22 +6,21 @@ import pytest
 from rdflib import RDF, SDO, Dataset, Graph, Literal, URIRef
 from rdflib.compare import isomorphic
 
-from kgm import load
 from kgm.definednamespaces import OLIS
 from kgm.event.syncer import (
     _add_commit_hash_to_dataset,
     _generate_rdf_patch_body_add,
     _retrieve_commit_hash,
 )
-from kgm.loader import ReturnDatatype
+from kgm.syncer import get_sync_dataset
 
 
 def test_add_commit_hash_to_dataset():
     manifest = Path(__file__).parent.parent / "demo-vocabs" / "manifest-mainEntity.ttl"
     commit_hash = "1234567890"
-    ds = load(manifest, return_data_type=ReturnDatatype.dataset)
+    ds = get_sync_dataset(manifest, OLIS.SystemGraph)
     ds = _add_commit_hash_to_dataset(commit_hash, ds)
-    assert len(ds) == 178
+    assert len(ds) == 182
 
     graph = ds.graph(OLIS.SystemGraph)
     vg_iri = graph.value(predicate=RDF.type, object=OLIS.VirtualGraph)

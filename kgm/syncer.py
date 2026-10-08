@@ -5,7 +5,7 @@ import httpx
 from kurra.db.gsp import clear, delete, upload
 from kurra.sparql import query
 from kurra.utils import load_graph
-from rdflib import BNode, Graph, Literal, URIRef
+from rdflib import BNode, Dataset, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS, PROF, RDF, SDO, SKOS
 
 import kgm.utils
@@ -32,8 +32,11 @@ def sync(
     add_local: bool = True,
     add_to_system_graph: bool = True,
 ) -> dict:
-    """Synchronizes a set of resources in files or storage locations - from - described by a Manifest with a SPARQL Endpoint
-    - to.
+    """Synchronises the resources described by a Manifest with a SPARQL Endpoint.
+
+    Each resource is compared with its copy in the SPARQL Endpoint if existing using timestamps and version numbers. Based on selected flags, newer local resources are uploaded, newer remote ones are downloaded, and artifacts that only exist on one side are added to the other. The Catalogue and Resources can be registered in the System Graph.
+
+    To get the content sync() would retrieve locally without contacting a SPARQL Endpoint, use get_sync_dataset().
 
     Args:
         manifest: the KGM manifest describing the local resources
@@ -131,7 +134,7 @@ def sync(
     q = """
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX schema: <https://schema.org/>
-    
+
         SELECT ?p
         WHERE {
             GRAPH ?g {
@@ -217,55 +220,115 @@ def sync(
         )
 
     if add_to_system_graph:
-        system_graph = Graph()
-
-        catalogue_name = str(cat_iri)
-        if cat_artifact_path is not None:
-            catalogue_graph = load_graph(cat_artifact_path)
-            catalogue_name = (
-                catalogue_graph.value(
-                    subject=cat_iri,
-                    predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
-                )
-                or catalogue_name
-            )
-
-        catalogue_metadata_iri = URIRef(f"{cat_iri}-metadata")
-        system_graph.add((catalogue_metadata_iri, RDF.type, OLIS.RealGraph))
-        system_graph.add(
-            (catalogue_metadata_iri, SDO.name, Literal(f"{catalogue_name} Metadata"))
-        )
-        system_graph.add((cat_iri, RDF.type, OLIS.VirtualGraph))
-        system_graph.add((cat_iri, SDO.name, Literal(catalogue_name)))
-
-        for artifact_path, artifact in artifacts.items():
-            if artifact["role"] != MRR.ResourceData or not artifact["sync"]:
-                continue
-
-            resource_iri = artifact["main_entity"]
-            resource_name = str(resource_iri)
-            resource_graph = load_graph(absolutise_path(artifact_path, manifest_root))
-            resource_name = (
-                resource_graph.value(
-                    subject=resource_iri,
-                    predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
-                )
-                or resource_name
-            )
-
-            system_graph.add((resource_iri, RDF.type, OLIS.RealGraph))
-            system_graph.add((resource_iri, SDO.name, Literal(resource_name)))
-            system_graph.add((cat_iri, OLIS.includes, resource_iri))
-
         upload(
             sparql_endpoint,
-            system_graph,
+            _make_system_graph(artifacts, manifest_root),
             SYSTEM_GRAPH_IRI,
             True,
             http_client=http_client,
         )
 
     return sync_status
+
+
+def _make_system_graph(artifacts: dict, manifest_root: Path) -> Graph:
+    """Makes the System Graph entries for a Manifest.
+
+    The Catalogue is declared as a Virtual Graph, and each synchronised Resource is declared as a Real Graph that the Catalogue includes. Used by both sync() and get_sync_dataset().
+
+    Args:
+        artifacts: the Manifest's artifacts, as returned by denormalise_artifacts()
+        manifest_root: the Manifest's root directory
+
+    Returns:
+        a graph of the System Graph entries
+    """
+    system_graph = Graph()
+
+    cat_iri = None
+    cat_artifact_path = None
+    for k, v in artifacts.items():
+        if v["role"] == MRR.CatalogueData:
+            cat_iri = v["main_entity"]
+            cat_artifact_path = absolutise_path(k, manifest_root)
+
+    catalogue_name = str(cat_iri)
+    if cat_artifact_path is not None:
+        catalogue_graph = load_graph(cat_artifact_path)
+        catalogue_name = (
+            catalogue_graph.value(
+                subject=cat_iri,
+                predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
+            )
+            or catalogue_name
+        )
+
+    catalogue_metadata_iri = URIRef(f"{cat_iri}-metadata")
+    system_graph.add((catalogue_metadata_iri, RDF.type, OLIS.RealGraph))
+    system_graph.add(
+        (catalogue_metadata_iri, SDO.name, Literal(f"{catalogue_name} Metadata"))
+    )
+    system_graph.add((cat_iri, RDF.type, OLIS.VirtualGraph))
+    system_graph.add((cat_iri, SDO.name, Literal(catalogue_name)))
+
+    for artifact_path, artifact in artifacts.items():
+        if artifact["role"] != MRR.ResourceData or not artifact["sync"]:
+            continue
+
+        resource_iri = artifact["main_entity"]
+        resource_name = str(resource_iri)
+        resource_graph = load_graph(absolutise_path(artifact_path, manifest_root))
+        resource_name = (
+            resource_graph.value(
+                subject=resource_iri,
+                predicate=SDO.name | DCTERMS.title | SKOS.prefLabel,
+            )
+            or resource_name
+        )
+
+        system_graph.add((resource_iri, RDF.type, OLIS.RealGraph))
+        system_graph.add((resource_iri, SDO.name, Literal(resource_name)))
+        system_graph.add((cat_iri, OLIS.includes, resource_iri))
+
+    return system_graph
+
+
+def get_sync_dataset(
+    manifest: Path | tuple[Path, Path, Graph],
+    system_graph_iri: URIRef = SYSTEM_GRAPH_IRI,
+) -> Dataset:
+    """Gets the content sync() would upload for a Manifest as an in-memory Dataset. Unlike sync(), nothing is compared with or sent to a SPARQL Endpoint, and no local files are changed.
+
+    Args:
+        manifest: the KGM manifest describing the local resources
+        system_graph_iri: the IRI of the Named Graph to put the System Graph entries in
+
+    Returns:
+        a Dataset containing one Named Graph per synchronised Catalogue and Resource, the background graph and the
+        System Graph
+    """
+    manifest_path, manifest_root, manifest_graph = get_manifest_paths_and_graph(
+        manifest
+    )
+    artifacts = denormalise_artifacts((manifest_path, manifest_root, manifest_graph))
+
+    ds = Dataset()
+    for k, v in artifacts.items():
+        if v["role"] in [MRR.ResourceData, MRR.CatalogueData] and v["sync"]:
+            g = ds.graph(v["main_entity"])
+        elif v["role"] in [
+            MRR.IncompleteCatalogueAndResourceLabels,
+            MRR.CompleteCatalogueAndResourceLabels,
+        ]:
+            g = ds.graph(URIRef("http://background"))
+        else:
+            continue
+        g += load_graph(absolutise_path(k, manifest_root))
+
+    system_graph = ds.graph(system_graph_iri)
+    system_graph += _make_system_graph(artifacts, manifest_root)
+
+    return ds
 
 
 def make_catalogue(
@@ -277,8 +340,8 @@ def make_catalogue(
 
     Args:
         manifest: the KGM manifest to create the catalogue for
-        cat_iri: the iri of the catalogue, if known
-        reuse: whether to reuse the IRI of an existing catalogue if defined in the manifest
+        new_cat_iri: the iri of the catalogue, if known
+        reuse_cat_iri: whether to reuse the IRI of an existing catalogue if defined in the manifest
 
     Returns:
         a simple graph of the catalogue
