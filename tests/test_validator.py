@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from kgm import validate
@@ -14,27 +15,24 @@ def test_validator_valid():
 
 
 def test_validator_invalid_01():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(Path(__file__).parent / "demo-vocabs" / "manifest-invalid-01.ttl")
-    except ManifestValidationError as e:
-        assert "The manifest file is invalid" in str(e)
+    assert "The manifest file is invalid" in str(exc_info.value)
 
 
 def test_validator_invalid_03():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(Path(__file__).parent / "demo-vocabs" / "manifest-invalid-02.ttl")
-    except ManifestValidationError as e:
-        assert str(e) == "The content link vocabz/*.ttl is not a directory"
+    assert str(exc_info.value) == "The content link vocabz/*.ttl is not a directory"
 
 
 def test_validator_invalid_02():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(Path(__file__).parent / "demo-vocabs" / "manifest-invalid-03.ttl")
-    except ManifestValidationError as e:
-        assert (
-            str(e)
-            == "Remote content link non-resolving: https://raw.githubusercontent.com/RDFLib/prez/refs/heads/main/prez/reference_data/profiles/ogc_records_profile.ttlx"
-        )
+    assert (
+        str(exc_info.value)
+        == "Remote content link non-resolving: https://raw.githubusercontent.com/RDFLib/prez/refs/heads/main/prez/reference_data/profiles/ogc_records_profile.ttlx"
+    )
 
 
 def test_validator_valid_multi():
@@ -46,21 +44,19 @@ def test_validator_valid_main_entity():
 
 
 def test_validator_invalid_main_entity():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(
             Path(__file__).parent / "demo-vocabs" / "manifest-mainEntity-invalid.ttl"
         )
-    except ManifestValidationError as e:
-        assert "N04" in str(e)
+    assert "N04" in str(exc_info.value)
 
 
 def test_validator_invalid_main_entity2():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(
             Path(__file__).parent / "demo-vocabs" / "manifest-mainEntity-invalid2.ttl"
         )
-    except ManifestValidationError as e:
-        assert "N04" in str(e)
+    assert "N04" in str(exc_info.value)
 
 
 def test_validator_valid_conformance():
@@ -74,64 +70,61 @@ def test_validator_valid_conformance_local():
 
 
 def test_validator_invalid_conformance_local():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(
-            Path(__file__).parent
-            / "demo-vocabs"
-            / "manifest-conformance-local-invalid.ttl"
+            Path(__file__).parent / "demo-vocabs" / "manifest-conformance-local-invalid.ttl"
         )
-    except ManifestValidationError as e:
-        assert "Message: Requirement 2.1.4, 2.2.1 or 2.3.1" in str(e)
+    assert "Message: Requirement 2.1.4, 2.2.1 or 2.3.1" in str(exc_info.value)
 
 
 def test_validator_valid_conformance_all():
-    try:
-        validate(Path(__file__).parent / "demo-vocabs" / "manifest-conformance-all.ttl")
-    except ManifestValidationError as e:
-        assert "Results (8)" in str(e)
-
     # language-test.ttl is known to have 6 errors according to VocPub 4.10, image-test.ttl none
+    with pytest.raises(ManifestValidationError) as exc_info:
+        validate(Path(__file__).parent / "demo-vocabs" / "manifest-conformance-all.ttl")
+    assert "Results (8)" in str(exc_info.value)
 
 
 def test_validator_invalid_conformance_all():
-    try:
+    with pytest.raises(ManifestValidationError) as exc_info:
         validate(
             Path(__file__).parent
             / "demo-vocabs"
             / "manifest-conformance-all-local-invalid.ttl"
         )
-    except ManifestValidationError as e:
-        assert "Results (1)" in str(e)
+    assert "Results (1)" in str(exc_info.value)
 
 
 def test_own_validator():
-    from rdflib import Namespace
-
-    GN = Namespace("https://linked.data.gov.au/def/gn/")
-
     m = Path(__file__).parent / "validator/manifest-conformance-own.ttl"
-    try:
-        vg = validate(m)
-    except ManifestValidationError as e:
-        assert "Results (5)" in str(e)
+    with pytest.raises(ManifestValidationError) as exc_info:
+        validate(m)
+    assert "Results (5)" in str(exc_info.value)
 
 
 def test_validator_cli():
-    try:
-        runner.invoke(
-            app,
-            [
-                "validate",
-                Path(__file__).parent / "demo-vocabs" / "manifest-invalid-01.ttl",
-            ],
+    result = runner.invoke(
+        app,
+        [
+            "validate",
+            str(Path(__file__).parent / "demo-vocabs" / "manifest-invalid-01.ttl"),
+        ],
+    )
+    assert result.exit_code != 0
+    assert "MinCountConstraintComponent" in str(result.exception)
+
+
+def test_validator_invalid_conformance_missing():
+    with pytest.raises(ManifestValidationError) as exc_info:
+        validate(
+            Path(__file__).parent
+            / "demo-vocabs"
+            / "manifest-conformance-local-missing.ttl"
         )
-    except ManifestValidationError as e:
-        assert "MinCountConstraintComponent" in str(e)
+    assert "could not be found" in str(exc_info.value)
 
 
 def test_error_reporting():
     m = Path(__file__).parent / "validator/manifest-syntax-error.ttl"
-    try:
-        vg = validate(m)
-    except SyntaxError as e:
-        assert "Failed to load " in str(e)
+    with pytest.raises(SyntaxError) as exc_info:
+        validate(m)
+    assert "Failed to load " in str(exc_info.value)

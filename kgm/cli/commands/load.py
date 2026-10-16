@@ -2,8 +2,10 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from kurra.file import export_quads
 
 from kgm.loader import load
+from kgm.syncer import get_sync_dataset
 
 app = typer.Typer(help="Load a KGM's content into a file or DB")
 
@@ -36,4 +38,4 @@ def file_command(
     manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
     file: Path = typer.Argument(..., help="The path of the quads file"),
 ) -> None:
-    load(manifest, destination_file=file)
+    export_quads(get_sync_dataset(manifest), file)
