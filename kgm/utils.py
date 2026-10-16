@@ -335,13 +335,12 @@ def get_artifact_main_entity_iri(
                     known_entity_classes.append(str(m_e_c))
 
     # get Main Entity classes from KNOWN_ENTITY_CLASSES static list
-    if len(known_entity_classes) < 1:
-        known_entity_classes = [str(x) for x in KNOWN_ENTITY_CLASSES]
+    known_entity_classes = [str(x) for x in KNOWN_ENTITY_CLASSES]
 
     # build the query to look for the Main Entity in the artifact
     known_entity_classes_str = f"<{'>\n                <'.join(known_entity_classes)}>"
     q = f"""
-        SELECT ?me
+        SELECT DISTINCT ?me
         WHERE {{
             VALUES ?t {{
                 {known_entity_classes_str.strip()}
