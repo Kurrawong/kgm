@@ -7,12 +7,14 @@ specification (see https://prez.dev/manifest/) and checks that all the resources
 ~$ python validate.py {MANIFEST_FILE_PATH}"""
 
 from pathlib import Path
+from pickle import dump, load
 
 import httpx
 import kurra.shacl
+from kurra.db.gsp import get as gsp_get
 from kurra.utils import load_graph
 from pyparsing import Literal
-from rdflib import BNode, Graph, URIRef
+from rdflib import BNode, Dataset, Graph, URIRef
 from rdflib.namespace import DCTERMS, PROF, SDO
 
 from kgm.utils import get_background_graph, get_files_from_artifact
@@ -20,6 +22,45 @@ from kgm.utils import get_background_graph, get_files_from_artifact
 
 class ManifestValidationError(Exception):
     pass
+
+
+def _ensure_validator(iri: str) -> None:
+    """Cache just the requested validator, using Kurra's shared cache format."""
+    if iri in kurra.shacl.list_local_validators():
+        return
+
+    graph = gsp_get("https://fuseki.dev.kurrawong.ai/semback/sparql", iri)
+    if not isinstance(graph, Graph) or not graph:
+        raise ManifestValidationError(
+            f"The validator <{iri}> indicated in the manifest file is not known to the Semantic Background"
+        )
+
+    cache = Path.home() / ".kurra"
+    cache.mkdir(parents=True, exist_ok=True)
+    validators_path = cache / "validators.pkl"
+    ids_path = cache / "validator_ids.pkl"
+    if validators_path.exists():
+        with validators_path.open("rb") as stream:
+            validators = load(stream)
+    else:
+        validators = Dataset()
+    cached_graph = validators.graph(URIRef(iri))
+    cached_graph += graph
+
+    if ids_path.exists():
+        with ids_path.open("rb") as stream:
+            ids = load(stream)
+    else:
+        ids = {}
+    for cached_graph in validators.graphs():
+        identifier = cached_graph.identifier
+        if str(identifier) != "urn:x-rdflib:default" and identifier not in ids:
+            ids[identifier] = max(ids.values(), default=0) + 1
+
+    with validators_path.open("wb") as stream:
+        dump(validators, stream)
+    with ids_path.open("wb") as stream:
+        dump(ids, stream)
 
 
 def validate(manifest: Path) -> Graph:
@@ -69,8 +110,7 @@ def validate(manifest: Path) -> Graph:
                 )
 
     # validate the manifest
-    if not kurra.shacl.check_validator_known("https://prez.dev/manifest-validator"):
-        kurra.shacl.sync_validators()
+    _ensure_validator("https://prez.dev/manifest-validator")
 
     v = kurra.shacl.validate(
         [manifest_graph, load_graph(ME.parent / "mrr.ttl")],
@@ -83,19 +123,10 @@ def validate(manifest: Path) -> Graph:
     background_graph = get_background_graph(manifest)
 
     # validate each resource with a conformance claim
-    # check all conformance claims validators indicated by IRI are known
-    # if any ar unknown, force a validator sync
-    for validator in manifest_graph.objects(subject=None, predicate=DCTERMS.conformsTo):
-        if not kurra.shacl.check_validator_known(str(validator)):
-            kurra.shacl.sync_validators()
-
-    # recheck all, in case we had a sync
-    for validator in manifest_graph.objects(subject=None, predicate=DCTERMS.conformsTo):
+    # Resolve each distinct validator without synchronizing the remote catalogue.
+    for validator in set(manifest_graph.objects(predicate=DCTERMS.conformsTo)):
         if str(validator).startswith("http"):
-            if not kurra.shacl.check_validator_known(str(validator)):
-                raise ManifestValidationError(
-                    f"The validator <{validator}> indicated in the manifest file is not known to the Semantic Background"
-                )
+            _ensure_validator(str(validator))
         else:
             if not (manifest_root / str(validator)).is_file():
                 raise ManifestValidationError(
