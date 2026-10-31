@@ -9,11 +9,11 @@ from pathlib import Path
 
 import httpx
 from kurra.labels import find_missing_labels, get_labels
-from kurra.utils import load_graph
 from rdflib import BNode, Graph, Literal
 from rdflib.namespace import PROF, RDF
 
 from kgm.definednamespaces import MRR, PREZ
+from kgm.rdf import load_graph
 from kgm.utils import denormalise_artifacts, get_manifest_paths_and_graph
 
 
@@ -49,7 +49,7 @@ def label(
         context_graph += load_graph(k)
 
     # add labels for system IRIs
-    context_graph.parse(Path(__file__).parent / "system-labels.ttl")
+    context_graph += load_graph(Path(__file__).parent / "system-labels.ttl")
 
     if output_type == LabellerOutputTypes.iris:
         combined_graph = manifest_graph + content_graph + context_graph
@@ -65,6 +65,8 @@ def label(
 
         if additional_context is None:
             additional_context = "https://fuseki.dev.kurrawong.ai/semback/sparql"
+        elif isinstance(additional_context, Path):
+            additional_context = load_graph(additional_context)
 
         return get_labels(iris_missing_labels, additional_context, "graph", http_client)
 

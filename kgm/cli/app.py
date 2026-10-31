@@ -4,9 +4,20 @@ import sys
 from typing import Annotated
 
 import typer
+from typer.core import TyperGroup
 
 from kgm import __version__
 from kgm.cli.console import console
+from kgm.rdf import RDFParseError
+
+
+class KGMGroup(TyperGroup):
+    def invoke(self, ctx):
+        try:
+            return super().invoke(ctx)
+        except RDFParseError as error:
+            typer.echo(f"Error: {error}", err=True)
+            raise typer.Exit(code=1) from error
 
 
 # Configure logging
@@ -42,6 +53,7 @@ def setup_logging():
 setup_logging()
 
 app = typer.Typer(
+    cls=KGMGroup,
     invoke_without_command=True,
     context_settings={
         "help_option_names": ["-h", "--help"],

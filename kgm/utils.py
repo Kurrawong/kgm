@@ -5,13 +5,13 @@ from enum import Enum
 from pathlib import Path
 
 import httpx
-from kurra.file import load_graph
 from kurra.sparql import query
-from rdflib import BNode, Dataset, Graph, Literal, Node, URIRef
+from rdflib import BNode, Graph, Literal, Node, URIRef
 from rdflib.namespace import DCAT, OWL, PROF, RDF, SDO, SKOS, XSD
 
 import kgm
 from kgm.definednamespaces import MRR, PREZ
+from kgm.rdf import load_graph
 
 KNOWN_PROFILES = {
     URIRef("http://www.opengis.net/def/geosparql"): {
@@ -121,15 +121,14 @@ def get_identifier_from_file(file: Path) -> list[URIRef]:
     """Returns a list if RDFLib graph identifier (URIRefs) from a triples or quads file
     for all KNOWN_ENTITY_CLASSES objects"""
     if file.name.endswith(".ttl"):
-        g = Graph().parse(file)
+        g = load_graph(file)
         for entity_class in KNOWN_ENTITY_CLASSES:
             v = g.value(predicate=RDF.type, object=entity_class)
             if v is not None:
                 return [v]
     elif file.name.endswith(".trig"):
         gs = []
-        d = Dataset()
-        d.parse(file, format="trig")
+        d = load_graph(file)
         for g in d.graphs():
             gs.append(g.identifier)
         return gs

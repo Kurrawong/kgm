@@ -3,12 +3,12 @@ from pathlib import Path
 import httpx
 from kurra.db.gsp import clear, delete, upload
 from kurra.sparql import query
-from kurra.utils import load_graph
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS, PROF, RDF, SDO, SKOS
 
 import kgm.utils
 from kgm.definednamespaces import MRR, OLIS
+from kgm.rdf import load_graph
 from kgm.utils import (
     SYSTEM_GRAPH_IRI,
     VersionIndicatorComparison,

@@ -2,9 +2,9 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from rdflib import Dataset
 
 from kgm.loader import load
+from kgm.rdf import load_dataset
 from kgm.syncer import get_sync_dataset
 
 app = typer.Typer(help="Load a KGM's content into a file or DB")
@@ -49,5 +49,5 @@ def file_command(
 
     dataset = get_sync_dataset(manifest)
     if file.is_file():
-        dataset += Dataset().parse(file, format=output_format)
+        dataset += load_dataset(file, format=output_format)
     dataset.serialize(destination=file, format=output_format)

@@ -12,11 +12,11 @@ from pickle import dump, load
 import httpx
 import kurra.shacl
 from kurra.db.gsp import get as gsp_get
-from kurra.utils import load_graph
 from pyparsing import Literal
 from rdflib import BNode, Dataset, Graph, URIRef
 from rdflib.namespace import DCTERMS, PROF, SDO
 
+from kgm.rdf import load_graph, parsing_source
 from kgm.utils import get_background_graph, get_files_from_artifact, resource_is_ignored
 
 
@@ -29,7 +29,8 @@ def _ensure_validator(iri: str) -> None:
     if iri in kurra.shacl.list_local_validators():
         return
 
-    graph = gsp_get("https://fuseki.dev.kurrawong.ai/semback/sparql", iri)
+    with parsing_source(iri, "validator"):
+        graph = gsp_get("https://fuseki.dev.kurrawong.ai/semback/sparql", iri)
     if not isinstance(graph, Graph) or not graph:
         raise ManifestValidationError(
             f"The validator <{iri}> indicated in the manifest file is not known to the Semantic Background"
@@ -81,7 +82,8 @@ def validate(manifest: Path) -> Graph:
     # can't use get_manifest_paths_and_graph() here as that function uses validate()
     manifest_path = manifest
     manifest_root = Path(manifest).parent.resolve()
-    manifest_graph = load_graph(manifest)
+    with parsing_source(manifest, "manifest file"):
+        manifest_graph = load_graph(manifest)
 
     ME = Path(__file__)
 
@@ -117,7 +119,9 @@ def validate(manifest: Path) -> Graph:
         "https://prez.dev/manifest-validator",
     )
     if not v[0]:
-        raise ManifestValidationError(f"The manifest file is invalid:\n\n{v[2]}")
+        raise ManifestValidationError(
+            f"The manifest file is invalid ({manifest}):\n\n{v[2]}"
+        )
 
     # get the background graph for merging into artifact graphs for validation
     background_graph = get_background_graph(manifest)
@@ -172,10 +176,7 @@ def validate(manifest: Path) -> Graph:
                     )
 
                 if validator is not None:
-                    try:
-                        data_graph = load_graph(manifest_root / file)
-                    except SyntaxError as e:
-                        raise SyntaxError(f"Failed to load {file}: {e}")
+                    data_graph = load_graph(file)
 
                     # all validators indicated in the Manifest will have been confirmed known at this point
                     # or are supplied
@@ -184,9 +185,11 @@ def validate(manifest: Path) -> Graph:
                     else:  # must be a local file
                         validator = manifest_root / str(validator)
 
-                    v = kurra.shacl.validate(
-                        [data_graph, background_graph], str(validator)
-                    )
+                    shapes = str(validator)
+                    if isinstance(validator, Path):
+                        with parsing_source(validator, "validator file"):
+                            shapes = load_graph(validator)
+                    v = kurra.shacl.validate([data_graph, background_graph], shapes)
                     if not v[0]:
                         raise ManifestValidationError(
                             f"the artifact {manifest_root / file} is invalid according to validator {validator}:\n\n{v[2]}"
