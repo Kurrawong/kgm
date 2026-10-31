@@ -8,6 +8,7 @@ from typer.core import TyperGroup
 
 from kgm import __version__
 from kgm.cli.console import console
+from kgm.endpoint import SPARQLEndpointError
 from kgm.rdf import RDFParseError
 
 
@@ -15,7 +16,7 @@ class KGMGroup(TyperGroup):
     def invoke(self, ctx):
         try:
             return super().invoke(ctx)
-        except RDFParseError as error:
+        except (RDFParseError, SPARQLEndpointError) as error:
             typer.echo(f"Error: {error}", err=True)
             raise typer.Exit(code=1) from error
 

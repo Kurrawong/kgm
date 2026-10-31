@@ -9,6 +9,7 @@ from rich.table import Table
 
 from kgm.cli.app import app
 from kgm.cli.console import console
+from kgm.endpoint import endpoint_errors
 from kgm.syncer import sync
 from kgm.utils import make_httpx_client
 
@@ -55,16 +56,17 @@ def sync_command(
         help="Add synchronized resources to the target system graph (true or false)",
     ),
 ) -> None:
-    r = sync(
-        manifest,
-        endpoint,
-        make_httpx_client(username, password, timeout),
-        update_remote,
-        update_local,
-        add_remote,
-        add_local,
-        add_to_system_graph == BooleanValue.true,
-    )
+    with endpoint_errors(endpoint):
+        r = sync(
+            manifest,
+            endpoint,
+            make_httpx_client(username, password, timeout),
+            update_remote,
+            update_local,
+            add_remote,
+            add_local,
+            add_to_system_graph == BooleanValue.true,
+        )
 
     if response_format == "json":
         print(json.dumps(r, indent=4))

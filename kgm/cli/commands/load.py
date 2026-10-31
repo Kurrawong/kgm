@@ -3,6 +3,7 @@ from typing import Annotated
 
 import typer
 
+from kgm.endpoint import endpoint_errors
 from kgm.loader import load
 from kgm.rdf import load_dataset
 from kgm.syncer import get_sync_dataset
@@ -24,13 +25,14 @@ def sparql_command(
         int, typer.Option("--timeout", "-t", help="Timeout per request")
     ] = 60,
 ) -> None:
-    load(
-        manifest,
-        sparql_endpoint=endpoint,
-        sparql_username=username,
-        sparql_password=password,
-        timeout=timeout,
-    )
+    with endpoint_errors(endpoint):
+        load(
+            manifest,
+            sparql_endpoint=endpoint,
+            sparql_username=username,
+            sparql_password=password,
+            timeout=timeout,
+        )
 
 
 @app.command(name="file", help="Load a KGM's resources into a single RDF quads file")
