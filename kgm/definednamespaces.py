@@ -32,6 +32,8 @@ class PREZ(DefinedNamespace):
     _fail = True
 
     Manifest: URIRef
+    ignore: URIRef
+    sync: URIRef
 
 
 class MVT(DefinedNamespace):

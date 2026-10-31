@@ -62,6 +62,7 @@ from kgm.utils import (
     get_identifier_from_file,
     get_manifest_paths_and_graph,
     load_graph,
+    resource_is_ignored,
 )
 from kgm.validator import validate
 
@@ -158,6 +159,8 @@ def catalogue(manifest: Path) -> Graph:
 
     catalogue = Graph()
     for s, o in manifest_graph.subject_objects(PROF.hasResource):
+        if resource_is_ignored(manifest_graph, o):
+            continue
         for role in manifest_graph.objects(o, PROF.hasRole):
             if role == MRR.CatalogueData:
                 for artifact in manifest_graph.objects(o, PROF.hasArtifact):
@@ -171,6 +174,8 @@ def catalogue(manifest: Path) -> Graph:
 
     # non-catalogue resources
     for s, o in manifest_graph.subject_objects(PROF.hasResource):
+        if resource_is_ignored(manifest_graph, o):
+            continue
         for role in manifest_graph.objects(o, PROF.hasRole):
             if role == MRR.ResourceData:
                 for artifact in manifest_graph.objects(o, PROF.hasArtifact):

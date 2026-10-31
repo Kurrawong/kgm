@@ -17,7 +17,7 @@ from pyparsing import Literal
 from rdflib import BNode, Dataset, Graph, URIRef
 from rdflib.namespace import DCTERMS, PROF, SDO
 
-from kgm.utils import get_background_graph, get_files_from_artifact
+from kgm.utils import get_background_graph, get_files_from_artifact, resource_is_ignored
 
 
 class ManifestValidationError(Exception):
@@ -124,7 +124,14 @@ def validate(manifest: Path) -> Graph:
 
     # validate each resource with a conformance claim
     # Resolve each distinct validator without synchronizing the remote catalogue.
-    for validator in set(manifest_graph.objects(predicate=DCTERMS.conformsTo)):
+    validators = set()
+    for resource in manifest_graph.objects(None, PROF.hasResource):
+        if resource_is_ignored(manifest_graph, resource):
+            continue
+        validators.update(manifest_graph.objects(resource, DCTERMS.conformsTo))
+        for artifact in manifest_graph.objects(resource, PROF.hasArtifact):
+            validators.update(manifest_graph.objects(artifact, DCTERMS.conformsTo))
+    for validator in validators:
         if str(validator).startswith("http"):
             _ensure_validator(str(validator))
         else:
@@ -135,6 +142,8 @@ def validate(manifest: Path) -> Graph:
 
     # validate each file referenced in the Manifest
     for s, resource in manifest_graph.subject_objects(PROF.hasResource):
+        if resource_is_ignored(manifest_graph, resource):
+            continue
         for artifact in manifest_graph.objects(resource, PROF.hasArtifact):
             if isinstance(artifact, BNode):
                 content_location = manifest_graph.value(

@@ -1,4 +1,3 @@
-from mailbox import MMDF
 from pathlib import Path
 
 import httpx
@@ -16,6 +15,7 @@ from kgm.utils import (
     absolutise_path,
     denormalise_artifacts,
     get_manifest_paths_and_graph,
+    resource_is_ignored,
     store_remote_artifact_locally,
     update_local_artifact,
     which_is_more_recent,
@@ -64,6 +64,13 @@ def sync(
     # For each Artifact in the Manifest
     artifacts = denormalise_artifacts((manifest_path, manifest_root, manifest_graph))
     local_entities = [v["main_entity"] for k, v in artifacts.items()]
+    # An ignored artifact identified in the manifest must not be rediscovered
+    # remotely and downloaded as a supposedly new local resource.
+    for resource in manifest_graph.objects(None, PROF.hasResource):
+        if resource_is_ignored(manifest_graph, resource):
+            local_entities.extend(manifest_graph.objects(resource, SDO.mainEntity))
+            for artifact in manifest_graph.objects(resource, PROF.hasArtifact):
+                local_entities.extend(manifest_graph.objects(artifact, SDO.mainEntity))
 
     cat_iri = None
     cat_artifact_path = None
@@ -151,7 +158,7 @@ def sync(
         return_bindings_only=True,
     ):
         remote_entity = x["p"]
-        if remote_entity not in local_entities:
+        if URIRef(remote_entity) not in local_entities:
             sync_status[str(remote_entity)] = {
                 "main_entity": URIRef(remote_entity),
                 "direction": "add-locally",
@@ -263,13 +270,14 @@ def _make_system_graph(artifacts: dict, manifest_root: Path) -> Graph:
             or catalogue_name
         )
 
-    catalogue_metadata_iri = URIRef(f"{cat_iri}-metadata")
-    system_graph.add((catalogue_metadata_iri, RDF.type, OLIS.RealGraph))
-    system_graph.add(
-        (catalogue_metadata_iri, SDO.name, Literal(f"{catalogue_name} Metadata"))
-    )
-    system_graph.add((cat_iri, RDF.type, OLIS.VirtualGraph))
-    system_graph.add((cat_iri, SDO.name, Literal(catalogue_name)))
+    if cat_iri is not None:
+        catalogue_metadata_iri = URIRef(f"{cat_iri}-metadata")
+        system_graph.add((catalogue_metadata_iri, RDF.type, OLIS.RealGraph))
+        system_graph.add(
+            (catalogue_metadata_iri, SDO.name, Literal(f"{catalogue_name} Metadata"))
+        )
+        system_graph.add((cat_iri, RDF.type, OLIS.VirtualGraph))
+        system_graph.add((cat_iri, SDO.name, Literal(catalogue_name)))
 
     for artifact_path, artifact in artifacts.items():
         if artifact["role"] != MRR.ResourceData or not artifact["sync"]:
@@ -288,7 +296,8 @@ def _make_system_graph(artifacts: dict, manifest_root: Path) -> Graph:
 
         system_graph.add((resource_iri, RDF.type, OLIS.RealGraph))
         system_graph.add((resource_iri, SDO.name, Literal(resource_name)))
-        system_graph.add((cat_iri, OLIS.includes, resource_iri))
+        if cat_iri is not None:
+            system_graph.add((cat_iri, OLIS.includes, resource_iri))
 
     return system_graph
 
@@ -380,6 +389,8 @@ def make_catalogue(
     # see if we already have one in the Manifest
     existing_cat = False
     for r in manifest_graph.objects(None, PROF.hasResource):
+        if resource_is_ignored(manifest_graph, r):
+            continue
         if (r, PROF.hasRole, MRR.CatalogueData) in manifest_graph:
             existing_cat = True
             cat_path = next(manifest_graph.objects(r, PROF.hasArtifact))
@@ -401,8 +412,8 @@ def make_catalogue(
     if reuse_cat_iri:
         if c is None:
             raise ValueError(
-                f"You nave selected to reuse an existing catalogue "
-                f"but no resource with CatalogueData was found in the manifest"
+                "You nave selected to reuse an existing catalogue "
+                "but no resource with CatalogueData was found in the manifest"
             )
 
         if not cat_iri_existing:

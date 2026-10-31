@@ -58,6 +58,29 @@ kgm validate manifest.ttl
 
 ## Manifest Data Model
 
+### Ignoring a resource
+
+Set `prez:ignore true` (`prez:` is `https://prez.dev/`) on a resource descriptor to skip processing all of its artifacts:
+
+```turtle
+[
+    prof:hasArtifact "large-dataset.ttl" ;
+    prof:hasRole mrr:ResourceData ;
+    prez:ignore true ;
+]
+```
+
+KGM does not resolve, download, parse, validate, extract metadata from, or load those artifacts. This also applies to
+wildcard paths, URLs, blank-node artifacts, and label resources. Validators referenced only by ignored resources are not
+fetched. The manifest itself is still parsed and structurally validated, and ignored declarations remain in it.
+
+Unlike `prez:sync false`, which only disables transfers, `prez:ignore true` skips artifact access entirely. Omit the
+predicate or set it to `false` for normal processing. This predicate applies to the resource descriptor, not an individual
+artifact. If an ignored artifact already exists remotely, supply its `schema:mainEntity` in the manifest so KGM can
+recognise it without opening the artifact and avoid downloading it as a new resource.
+
+### Structure
+
 ``` mermaid
 graph LR
   style Manifest fill:#FF90BB,stroke:#666,stroke-width:2px
@@ -69,6 +92,7 @@ graph LR
   ResourceDescriptor --1:0-N--> conformsTo;
   ResourceDescriptor --1:0-1--> additionalType;
   ResourceDescriptor --1:0-1--> sync;
+  ResourceDescriptor --1:0-1--> ignore;
   style artifact fill:#F8F8E1,stroke:#666,stroke-width:2px  
   artifact --1:0-N--> conformsTo;
   artifact --1:0-1--> additionalType;

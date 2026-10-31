@@ -156,6 +156,11 @@ def get_manifest_paths_and_graph(
     return manifest_path, manifest_root, manifest_graph
 
 
+def resource_is_ignored(manifest_graph: Graph, resource: Node) -> bool:
+    """Whether a resource descriptor opts all of its artifacts out of processing."""
+    return (resource, PREZ.ignore, Literal(True)) in manifest_graph
+
+
 def get_catalogue_iri_from_manifest(
     manifest: Path | tuple[Path, Path, Graph],
 ) -> URIRef:
@@ -165,6 +170,8 @@ def get_catalogue_iri_from_manifest(
 
     for m in manifest_graph.subjects(RDF.type, PREZ.Manifest):
         for r in manifest_graph.objects(m, PROF.hasResource):
+            if resource_is_ignored(manifest_graph, r):
+                continue
             for role in manifest_graph.objects(r, PROF.hasRole):
                 if role == MRR.CatalogueData:
                     artifacts = manifest_graph.objects(r, PROF.hasArtifact)
@@ -683,6 +690,7 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
                 BIND(COALESCE(?sync_local, ?sync_resource) AS ?sync)
                    
                 FILTER isBLANK(?bn)
+                FILTER NOT EXISTS { ?x prez:ignore true }
             }
             UNION 
             {
@@ -704,6 +712,7 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
                 } 
                 
                 FILTER isLITERAL(?a)
+                FILTER NOT EXISTS { ?x prez:ignore true }
             }
         }
         """
@@ -845,6 +854,8 @@ def get_background_graph(manifest: Path | tuple[Path, Path, Graph]) -> Graph:
     manifest_graph = load_graph(manifest)
 
     for resource in manifest_graph.objects(None, PROF.hasResource):
+        if resource_is_ignored(manifest_graph, resource):
+            continue
         for role in manifest_graph.objects(resource, PROF.hasRole):
             # The data files & background - must be processed after Catalogue
             if role in [
