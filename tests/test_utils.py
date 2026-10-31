@@ -1,16 +1,37 @@
 from datetime import datetime
+from pathlib import Path
 
+import httpx
 import pytest
 from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
+from kurra.sparql import query
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import PROF, SDO, SKOS
 from typer.testing import CliRunner
 
 import kgm.loader
-from kgm.utils import *
+from kgm.utils import (
+    VersionIndicatorComparison,
+    absolutise_path,
+    compare_version_indicators,
+    denormalise_artifacts,
+    get_artifact_main_entity_iri,
+    get_catalogue_iri_from_manifest,
+    get_files_from_artifact,
+    get_identifier_from_file,
+    get_manifest_paths_and_graph,
+    get_version_indicators_local,
+    get_version_indicators_sparql,
+    localise_path,
+    make_httpx_client,
+    path_or_url,
+    target_contains_this_manifests_catalogue,
+    which_is_more_recent,
+)
 from kgm.validator import ManifestValidationError
 
 runner = CliRunner()
-import httpx
 
 TESTS_DIR = Path(__file__).resolve().parent
 
@@ -168,6 +189,27 @@ def test_get_main_entity_iri_of_artifact():
         TESTS_DIR / "utils/main-entity-tests/sub/subsub/artifact-unknown-class.ttl",
         TESTS_DIR / "utils/main-entity-tests/sub/manifest-instance.2.ttl",
     ) == URIRef("https://example.com/dataset/x")
+
+
+def test_duplicate_additional_types_resolve_one_main_entity():
+    manifest = TESTS_DIR / "test_sync/local/manifest-dup.ttl"
+    manifest_graph = Graph().parse(manifest, format="turtle")
+    resource = manifest_graph.value(
+        predicate=PROF.hasArtifact, object=Literal("artifact6.ttl")
+    )
+    assert resource is not None
+    # Repeating an identical RDF triple collapses to one value when parsed.
+    assert list(manifest_graph.objects(resource, SDO.additionalType)) == [
+        SKOS.ConceptScheme
+    ]
+
+    artifacts = denormalise_artifacts((manifest, manifest.parent, manifest_graph))
+    main_entities = [
+        details["main_entity"]
+        for artifact, details in artifacts.items()
+        if artifact.name == "artifact6.ttl"
+    ]
+    assert main_entities == [URIRef("http://example.com/dataset/6")]
 
 
 def test_get_version_indicators_local():
