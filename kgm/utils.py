@@ -339,7 +339,9 @@ def get_artifact_main_entity_iri(
                     known_entity_classes.append(str(m_e_c))
 
     # get Main Entity classes from KNOWN_ENTITY_CLASSES static list
-    known_entity_classes = [str(x) for x in KNOWN_ENTITY_CLASSES]
+    known_entity_classes = list(
+        dict.fromkeys(str(x) for x in [*known_entity_classes, *KNOWN_ENTITY_CLASSES])
+    )
 
     # build the query to look for the Main Entity in the artifact
     known_entity_classes_str = f"<{'>\n                <'.join(known_entity_classes)}>"

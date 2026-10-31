@@ -18,10 +18,11 @@ from kgm.syncer import make_catalogue, sync
 runner = CliRunner()
 
 
-def test_sync(sparql_endpoint):
-    MANIFEST_FILE_LOCAL = Path(__file__).parent / "local/manifest.ttl"
+def test_sync(sparql_endpoint, tmp_path):
+    MANIFEST_ROOT = tmp_path / "local"
+    shutil.copytree(Path(__file__).parent / "local", MANIFEST_ROOT)
+    MANIFEST_FILE_LOCAL = MANIFEST_ROOT / "manifest.ttl"
     MANIFEST_FILE_REMOTE = Path(__file__).parent / "remote/manifest.ttl"
-    MANIFEST_ROOT = Path(__file__).parent / "local"
 
     # make copies of files that will be overwritten
     shutil.copy(MANIFEST_FILE_LOCAL, MANIFEST_FILE_LOCAL.with_suffix(".ttx"))
@@ -82,7 +83,11 @@ def test_sync(sparql_endpoint):
     assert a[str(MANIFEST_ROOT / "artifact5.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact6.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact7.ttl")]["direction"] == "same"
-    assert a["http://example.com/dataset/8"]["direction"] == "add-locally"
+    downloaded = MANIFEST_ROOT / kgm.utils.artifact_file_name_from_graph_id(
+        "http://example.com/dataset/8"
+    )
+    assert a[str(downloaded)]["direction"] == "same"
+    assert "http://example.com/dataset/8" not in a
     assert a[str(MANIFEST_ROOT / "catalogue.ttl")]["direction"] == "same"
 
     # tidy up
@@ -138,10 +143,11 @@ def test_sync_cli(sparql_endpoint):
     )
 
 
-def test_sync_sync_predicate(sparql_endpoint):
-    MANIFEST_FILE_LOCAL = Path(__file__).parent / "local/manifest-sync-pred.ttl"
+def test_sync_sync_predicate(sparql_endpoint, tmp_path):
+    MANIFEST_ROOT = tmp_path / "local"
+    shutil.copytree(Path(__file__).parent / "local", MANIFEST_ROOT)
+    MANIFEST_FILE_LOCAL = MANIFEST_ROOT / "manifest-sync-pred.ttl"
     MANIFEST_FILE_REMOTE = Path(__file__).parent / "remote/manifest.ttl"
-    MANIFEST_ROOT = Path(__file__).parent / "local"
 
     # make copies of files that will be overwritten
     shutil.copy(MANIFEST_FILE_LOCAL, MANIFEST_FILE_LOCAL.with_suffix(".ttx"))
@@ -179,7 +185,11 @@ def test_sync_sync_predicate(sparql_endpoint):
     assert a[str(MANIFEST_ROOT / "artifact5.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact6.ttl")]["direction"] == "same"
     assert a[str(MANIFEST_ROOT / "artifact7.ttl")]["direction"] == "same"
-    assert a["http://example.com/dataset/8"]["direction"] == "add-locally"
+    downloaded = MANIFEST_ROOT / kgm.utils.artifact_file_name_from_graph_id(
+        "http://example.com/dataset/8"
+    )
+    assert a[str(downloaded)]["direction"] == "same"
+    assert "http://example.com/dataset/8" not in a
     assert a[str(MANIFEST_ROOT / "catalogue.ttl")]["direction"] == "same"
 
     # tidy up
@@ -190,8 +200,10 @@ def test_sync_sync_predicate(sparql_endpoint):
         f.unlink()
 
 
-def test_make_catalogue():
-    MANIFEST_FILE_LOCAL = Path(__file__).parent / "local/manifest.ttl"
+def test_make_catalogue(tmp_path):
+    manifest_root = tmp_path / "local"
+    shutil.copytree(Path(__file__).parent / "local", manifest_root)
+    MANIFEST_FILE_LOCAL = manifest_root / "manifest.ttl"
     c = make_catalogue(
         MANIFEST_FILE_LOCAL, reuse_cat_iri=False, new_cat_iri="http://example.com/cat/x"
     )

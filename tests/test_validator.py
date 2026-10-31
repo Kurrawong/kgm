@@ -72,7 +72,9 @@ def test_validator_valid_conformance_local():
 def test_validator_invalid_conformance_local():
     with pytest.raises(ManifestValidationError) as exc_info:
         validate(
-            Path(__file__).parent / "demo-vocabs" / "manifest-conformance-local-invalid.ttl"
+            Path(__file__).parent
+            / "demo-vocabs"
+            / "manifest-conformance-local-invalid.ttl"
         )
     assert "Message: Requirement 2.1.4, 2.2.1 or 2.3.1" in str(exc_info.value)
 

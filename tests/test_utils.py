@@ -6,7 +6,7 @@ import pytest
 from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
 from rdflib import BNode, Graph, Literal, URIRef
-from rdflib.namespace import PROF, SDO, SKOS, XSD
+from rdflib.namespace import PROF, RDF, SDO, SKOS, XSD
 from typer.testing import CliRunner
 
 import kgm.loader
@@ -254,6 +254,26 @@ def test_duplicate_additional_types_resolve_one_main_entity():
     assert main_entities == [URIRef("http://example.com/dataset/6")]
 
 
+@pytest.mark.parametrize("explicit_type", [False, True])
+def test_main_entity_preserves_supplied_classes(tmp_path, explicit_type):
+    artifact = tmp_path / "artifact.nt"
+    custom_class = URIRef("https://example.com/CustomClass")
+    entity = URIRef("https://example.com/entity")
+    data = Graph()
+    data.add((entity, RDF.type, custom_class))
+    manifest_graph = Graph()
+    resource = BNode()
+    manifest_graph.add((resource, PROF.hasArtifact, Literal(artifact.name)))
+    manifest_graph.add((resource, SDO.additionalType, custom_class))
+    manifest = (tmp_path / "manifest.nt", tmp_path, manifest_graph)
+    assert (
+        get_artifact_main_entity_iri(
+            artifact, manifest, data, atype=custom_class if explicit_type else None
+        )
+        == entity
+    )
+
+
 def test_get_version_indicators_local():
     MANIFEST = TESTS_DIR / "demo-vocabs" / "manifest.ttl"
 
@@ -444,7 +464,7 @@ def test_which_is_more_recent(sparql_endpoint):
 
     vi = {
         "main_entity": URIRef("https://example.com/demo-vocabs/language-test"),
-        "modified_date": datetime.datetime(2025, 2, 28, 0, 0).date(),
+        "modified_date": datetime(2025, 2, 28, 0, 0).date(),
         "version_iri": "https://example.com/demo-vocabs/language-test/1.1",
         "file_size": 5053,
     }
@@ -455,7 +475,7 @@ def test_which_is_more_recent(sparql_endpoint):
 
     vi2 = {
         "main_entity": URIRef("https://example.com/demo-vocabs/language-test"),
-        "modified_date": datetime.datetime(2023, 2, 28, 0, 0).date(),
+        "modified_date": datetime(2023, 2, 28, 0, 0).date(),
         "file_size": 5053,
     }
 
