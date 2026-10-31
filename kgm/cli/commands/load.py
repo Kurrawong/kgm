@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from kurra.file import export_quads
+from rdflib import Dataset
 
 from kgm.loader import load
 from kgm.syncer import get_sync_dataset
@@ -36,6 +36,18 @@ def sparql_command(
 @app.command(name="file", help="Load a KGM's resources into a single RDF quads file")
 def file_command(
     manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
-    file: Path = typer.Argument(..., help="The path of the quads file"),
+    file: Path = typer.Argument(
+        ..., help="The path of the quads file (.nq for N-Quads or .trig for TriG)"
+    ),
 ) -> None:
-    export_quads(get_sync_dataset(manifest), file)
+    formats = {".nq": "nquads", ".trig": "trig"}
+    output_format = formats.get(file.suffix.lower())
+    if output_format is None:
+        raise typer.BadParameter(
+            "Use .nq for N-Quads or .trig for TriG", param_hint="file"
+        )
+
+    dataset = get_sync_dataset(manifest)
+    if file.is_file():
+        dataset += Dataset().parse(file, format=output_format)
+    dataset.serialize(destination=file, format=output_format)
