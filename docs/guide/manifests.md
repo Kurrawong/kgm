@@ -40,6 +40,9 @@ vocabularies content is stored in a `labels.ttl` file.
 
 The complete Prez Manifest model is available at <https://prez.dev/manifest/>.
 
+Artifact wildcards follow normal glob rules: `resources/*.ttl` selects files directly inside `resources/`, while
+`resources/**/*.ttl` also selects files in nested directories. Matching directories are excluded from artifact files.
+
 ## Tasks
 
 Things that you can do with manifests:

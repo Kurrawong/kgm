@@ -95,24 +95,21 @@ def get_files_from_artifact(
     if str(artifact).startswith("http") and "://" in str(artifact):
         return [str(artifact)]
     elif isinstance(artifact, Literal):
-        if "*" not in str(artifact):
+        if not any(marker in str(artifact) for marker in "*?["):
             return [manifest_root / path_or_url(str(artifact))]
         else:
-            artifact_str = str(artifact)
-            glob_marker_location = artifact_str.find("*")
-            glob_parts = [
-                artifact_str[:glob_marker_location],
-                artifact_str[glob_marker_location:],
-            ]
-            return Path(manifest_root / path_or_url(glob_parts[0])).rglob(glob_parts[1])
+            pattern = Path(str(artifact))
+            root = Path(pattern.anchor) if pattern.is_absolute() else manifest_root
+            if pattern.is_absolute():
+                pattern = pattern.relative_to(root)
+            return (file for file in root.glob(str(pattern)) if file.is_file())
     elif isinstance(artifact, BNode):
         contentLocation = manifest_graph.value(
             subject=artifact, predicate=SDO.contentLocation
         )
-        if str(contentLocation).startswith("http") and "://" in str(contentLocation):
-            return [str(contentLocation)]
-        else:
-            return [manifest_root / str(contentLocation)]
+        return get_files_from_artifact(
+            (manifest_path, manifest_root, manifest_graph), contentLocation
+        )
     else:
         raise TypeError(f"Unsupported artifact type: {type(artifact)}")
 

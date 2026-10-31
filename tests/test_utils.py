@@ -6,7 +6,7 @@ import pytest
 from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
 from kurra.sparql import query
-from rdflib import Graph, Literal, URIRef
+from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import PROF, SDO, SKOS, XSD
 from typer.testing import CliRunner
 
@@ -91,6 +91,48 @@ def test_get_files_from_artifact():
     assert len(fs) == 2
     assert Path(TESTS_DIR / "demo-vocabs" / "vocabs" / "image-test.ttl") in fs
     assert Path(TESTS_DIR / "demo-vocabs" / "vocabs" / "language-test.ttl") in fs
+
+
+@pytest.mark.parametrize(
+    "pattern,expected",
+    [
+        ("resources/*.nt", {"resources/main.nt"}),
+        (
+            "resources/**/*.nt",
+            {
+                "resources/main.nt",
+                "resources/group1/child.nt",
+                "resources/group1/deep/nested.nt",
+            },
+        ),
+        ("resources/group*/*.nt", {"resources/group1/child.nt"}),
+        ("resources/main*.nt", {"resources/main.nt"}),
+    ],
+)
+@pytest.mark.parametrize("absolute", [False, True])
+@pytest.mark.parametrize("blank_node", [False, True])
+def test_artifact_globs_recurse_only_with_double_star(
+    tmp_path, pattern, expected, absolute, blank_node
+):
+    files = [
+        "resources/main.nt",
+        "resources/group1/child.nt",
+        "resources/group1/deep/nested.nt",
+        "resources/notes.txt",
+    ]
+    for name in files:
+        file = tmp_path / name
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.touch()
+    (tmp_path / "resources/directory.nt").mkdir()
+    graph = Graph()
+    location = Literal(str(tmp_path / pattern) if absolute else pattern)
+    artifact = BNode() if blank_node else location
+    if blank_node:
+        graph.add((artifact, SDO.contentLocation, location))
+    manifest = (tmp_path / "manifest.nt", tmp_path, graph)
+    actual = set(get_files_from_artifact(manifest, artifact))
+    assert actual == {tmp_path / name for name in expected}
 
 
 def test_get_identifier_from_file():

@@ -98,9 +98,13 @@ def validate(manifest: Path, rdf: bool = False) -> Graph:
                 raise ManifestValidationError(
                     f"Remote content link non-resolving: {l_str}"
                 )
-        elif "*" in l_str:
-            glob_parts = l_str.split("*")
-            dir = Path(manifest_root / Path(glob_parts[0]))
+        elif any(marker in l_str for marker in "*?["):
+            prefix = []
+            for part in Path(l_str).parts:
+                if any(marker in part for marker in "*?["):
+                    break
+                prefix.append(part)
+            dir = manifest_root / Path(*prefix)
             if not Path(dir).is_dir():
                 raise ManifestValidationError(
                     f"The content link {l_str} is not a directory"
