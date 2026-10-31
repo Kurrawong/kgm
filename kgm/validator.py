@@ -16,7 +16,7 @@ from pyparsing import Literal
 from rdflib import BNode, Dataset, Graph, URIRef
 from rdflib.namespace import DCTERMS, PROF, SDO
 
-from kgm.rdf import load_graph, parsing_source
+from kgm.rdf import check_rdf_syntax, load_graph, parsing_source
 from kgm.utils import get_background_graph, get_files_from_artifact, resource_is_ignored
 
 
@@ -64,13 +64,14 @@ def _ensure_validator(iri: str) -> None:
         dump(ids, stream)
 
 
-def validate(manifest: Path) -> Graph:
+def validate(manifest: Path, rdf: bool = False) -> Graph:
     """Validates a manifest and any assets listed in it with a conformance claim.
 
     Uses validators known in the Semantic Background or supplied by the user.
 
     Args:
         manifest: path to a manifest file
+        rdf: parse all referenced RDF artifacts using Kurra's reformat --check
 
     Returns:
         Graph of validated manifest
@@ -164,6 +165,8 @@ def validate(manifest: Path) -> Graph:
             for file in get_files_from_artifact(
                 (manifest_path, manifest_root, manifest_graph), content_location
             ):
+                if rdf:
+                    check_rdf_syntax(file)
                 # if there is a conformance claim validator for this artifact, use it
                 validator = manifest_graph.value(
                     subject=artifact, predicate=DCTERMS.conformsTo

@@ -11,5 +11,11 @@ def validate_command(
     manifest: Path = typer.Argument(
         ..., help="The path of the KGM file to be validated"
     ),
+    rdf: bool = typer.Option(
+        False,
+        "--rdf",
+        "-r",
+        help="Parse all referenced RDF files to check their syntax",
+    ),
 ) -> None:
-    validate(manifest)
+    validate(manifest, rdf=rdf)

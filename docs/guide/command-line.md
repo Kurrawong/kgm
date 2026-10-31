@@ -23,6 +23,11 @@ kgm load file manifest.ttl output.trig
 kgm sync manifest.ttl https://example.com/sparql
 ```
 
+Use `kgm validate manifest.ttl -r` (or `--rdf`) to check the syntax of every referenced RDF artifact, even without a
+`dcterms:conformsTo` declaration. The boolean flag defaults to false; supplying it enables the checks without an additional
+value. These checks use `kurra file reformat --check`, leave source files unchanged, and accept formatting differences.
+Resources marked `prez:ignore true` are skipped.
+
 
 Run `kgm -h` to list commands, which will be something like this:
 
