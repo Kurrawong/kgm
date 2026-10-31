@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 from urllib.parse import urlsplit
 from xml.sax import SAXParseException
 
-import httpx
+import httpx2
 from kurra.file import FailOnChangeError, reformat
 from kurra.utils import RDF_SUFFIX_MAP
 from kurra.utils import load_graph as kurra_load_graph
@@ -53,7 +53,7 @@ def check_rdf_syntax(source: Path | str) -> None:
     with TemporaryDirectory(prefix="kgm-rdf-check-") as directory:
         temporary = Path(directory)
         if isinstance(source, str) and source.startswith(("http://", "https://")):
-            response = httpx.get(source, follow_redirects=True)
+            response = httpx2.get(source, follow_redirects=True)
             response.raise_for_status()
             suffix = Path(urlsplit(source).path).suffix.lower()
             if suffix not in RDF_SUFFIX_MAP:

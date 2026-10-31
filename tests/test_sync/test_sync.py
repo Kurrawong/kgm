@@ -3,20 +3,19 @@ import json
 import shutil
 from pathlib import Path
 
-import httpx
-from kurra.sparql import query
+import httpx2
 from rdflib import RDF, SDO, URIRef
 from rdflib.compare import isomorphic
 from typer.testing import CliRunner
 
 import kgm.utils
+from kgm.cli import app
 from kgm.definednamespaces import OLIS
 from kgm.loader import load
+from kgm.sparql import query
 from kgm.syncer import make_catalogue, sync
-from kgm.utils import artifact_file_name_from_graph_id
 
 runner = CliRunner()
-from kgm.cli import app
 
 
 def test_sync(sparql_endpoint):
@@ -66,7 +65,13 @@ def test_sync(sparql_endpoint):
 
     # run sync again, performing no actions to just get updated status
     a = sync(
-        MANIFEST_FILE_LOCAL, sparql_endpoint, httpx.Client(), False, False, False, False
+        MANIFEST_FILE_LOCAL,
+        sparql_endpoint,
+        httpx2.Client(),
+        False,
+        False,
+        False,
+        False,
     )
 
     # check status after sync
@@ -147,15 +152,10 @@ def test_sync_sync_predicate(sparql_endpoint):
     query(sparql_endpoint, "DROP ALL")
 
     # load it with remote data
-    sync(MANIFEST_FILE_REMOTE, sparql_endpoint, None,True, False, True, False)
+    sync(MANIFEST_FILE_REMOTE, sparql_endpoint, None, True, False, True, False)
 
     # synch using the local manifest
-    a = sync(
-        MANIFEST_FILE_LOCAL,
-        sparql_endpoint,
-        None,
-        True,True, True, True
-    )
+    a = sync(MANIFEST_FILE_LOCAL, sparql_endpoint, None, True, True, True, True)
 
     # check status before sync
     assert a[str(MANIFEST_ROOT / "artifacts/artifact1.ttl")]["direction"] == "same"
@@ -169,9 +169,7 @@ def test_sync_sync_predicate(sparql_endpoint):
     assert a[str(MANIFEST_ROOT / "catalogue.ttl")]["direction"] == "same"
 
     # run sync again, performing no actions to just get updated status
-    a = sync(
-        MANIFEST_FILE_LOCAL, sparql_endpoint, None, False, False, False, False
-    )
+    a = sync(MANIFEST_FILE_LOCAL, sparql_endpoint, None, False, False, False, False)
 
     # check status after sync
     assert a[str(MANIFEST_ROOT / "artifacts/artifact1.ttl")]["direction"] == "same"

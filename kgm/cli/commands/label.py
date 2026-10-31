@@ -4,7 +4,7 @@ from typing import Annotated
 import typer
 
 from kgm.labeller import LabellerOutputTypes, label
-from kgm.utils import make_httpx_client
+from kgm.utils import make_httpx2_client
 
 app = typer.Typer(help="Discover labels missing from data in a in a KGM and patch them")
 
@@ -32,7 +32,7 @@ def iris_command(
         manifest,
         LabellerOutputTypes.iris,
         context,
-        make_httpx_client(username, password),
+        make_httpx2_client(username, password),
     ):
         print(str(iri))
 
@@ -61,7 +61,7 @@ def rdf_command(
             manifest,
             LabellerOutputTypes.rdf,
             context,
-            make_httpx_client(username, password),
+            make_httpx2_client(username, password),
         ).serialize(format="longturtle")
     )
 
@@ -89,7 +89,7 @@ def manifest_command(
         manifest,
         LabellerOutputTypes.manifest,
         context,
-        make_httpx_client(username, password),
+        make_httpx2_client(username, password),
     )
 
     print("A new Resource containing labels has been added to the Manifest")

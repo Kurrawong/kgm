@@ -2,10 +2,11 @@ import time
 from pathlib import Path
 
 import docker
-import httpx
+import httpx2
 import pytest
-from kurra.sparql import query
 from testcontainers.core.container import DockerContainer
+
+from kgm.sparql import query
 
 FUSEKI_IMAGE = "ghcr.io/kurrawong/fuseki-geosparql:git-main-e642d849"
 
@@ -16,8 +17,6 @@ def wait_for_logs(container, text, timeout=30, interval=0.5):
     """
     client = docker.from_env()
     start_time = time.time()
-
-    logs_seen = ""
 
     while True:
         # Read logs incrementally
@@ -54,13 +53,13 @@ def fuseki_container():
 def sparql_endpoint(fuseki_container):
     url = f"http://localhost:{fuseki_container.get_exposed_port(3030)}/ds"
     yield url
-    with httpx.Client(auth=("admin", "admin")) as http_client:
+    with httpx2.Client(auth=("admin", "admin")) as http_client:
         query(url, "DROP ALL", http_client=http_client)
 
 
 @pytest.fixture(scope="function")
 def http_client():
-    _http_client = httpx.Client(auth=("admin", "admin"))
+    _http_client = httpx2.Client(auth=("admin", "admin"))
 
     yield _http_client
     _http_client.close()

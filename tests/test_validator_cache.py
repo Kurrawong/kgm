@@ -27,7 +27,7 @@ def shapes(iri):
 
 
 def test_fetch_only_missing_validators(monkeypatch, isolated_cache):
-    fetch = Mock(side_effect=lambda endpoint, iri: shapes(iri))
+    fetch = Mock(side_effect=lambda endpoint, iri, **kwargs: shapes(iri))
     monkeypatch.setattr(validator, "gsp_get", fetch)
     first = "https://example.com/first"
     second = "https://example.com/second"
@@ -54,7 +54,7 @@ def test_unknown_validator_not_cached(monkeypatch, isolated_cache, response):
 
 
 def test_local_conformance_fetches_only_manifest_validator(monkeypatch, isolated_cache):
-    fetch = Mock(side_effect=lambda endpoint, iri: shapes(iri))
+    fetch = Mock(side_effect=lambda endpoint, iri, **kwargs: shapes(iri))
     monkeypatch.setattr(validator, "gsp_get", fetch)
     manifest = Path(__file__).parent / "validator/manifest-conformance-own.ttl"
     with pytest.raises(validator.ManifestValidationError, match="artifact.*invalid"):
@@ -80,7 +80,7 @@ def test_remote_conformance_is_fetched_once(monkeypatch, isolated_cache):
         "load_graph",
         lambda path: graph if path == manifest else load_graph(path),
     )
-    fetch = Mock(side_effect=lambda endpoint, iri: shapes(iri))
+    fetch = Mock(side_effect=lambda endpoint, iri, **kwargs: shapes(iri))
     monkeypatch.setattr(validator, "gsp_get", fetch)
 
     assert validator.validate(manifest)

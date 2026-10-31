@@ -2,7 +2,7 @@ import io
 import time
 from pathlib import Path
 
-import httpx
+import httpx2
 from rdflib.query import Result
 
 from kgm.event.client import DeltaEventClient
@@ -19,7 +19,7 @@ def test(client: DeltaEventClient, sparql_endpoint: str):
         Path(__file__).parent.parent.parent / "demo-vocabs/manifest-mainEntity.ttl"
     )
     assert manifest_path.exists()
-    with httpx.Client() as http_client:
+    with httpx2.Client() as http_client:
         sync_rdf_delta(
             project_root,
             manifest_path,
@@ -46,7 +46,7 @@ def test(client: DeltaEventClient, sparql_endpoint: str):
             "Accept": "application/sparql-results+json",
         }
         time.sleep(0.5)
-        response = httpx.post(sparql_endpoint, headers=headers, content=query)
+        response = httpx2.post(sparql_endpoint, headers=headers, content=query)
         response.raise_for_status()
         result = Result.parse(
             io.BytesIO(response.content), response.headers["Content-Type"].split(";")[0]

@@ -18,10 +18,10 @@ from enum import Enum
 from getpass import getpass
 from pathlib import Path
 
-from rdflib import Dataset, Graph
+from rdflib import Graph
 
 from kgm.syncer import sync
-from kgm.utils import make_httpx_client
+from kgm.utils import make_httpx2_client
 
 
 class ReturnDatatype(str, Enum):
@@ -71,6 +71,10 @@ def load(
     return sync(
         manifest,
         sparql_endpoint,
-        make_httpx_client(sparql_username, sparql_password, timeout),
-        True, False, True, False, True
+        make_httpx2_client(sparql_username, sparql_password, timeout),
+        True,
+        False,
+        True,
+        False,
+        True,
     )

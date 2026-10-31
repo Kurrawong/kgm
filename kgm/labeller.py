@@ -7,7 +7,7 @@ repository.
 from enum import Enum
 from pathlib import Path
 
-import httpx
+import httpx2
 from kurra.labels import find_missing_labels, get_labels
 from rdflib import BNode, Graph, Literal
 from rdflib.namespace import PROF, RDF
@@ -27,7 +27,7 @@ def label(
     manifest: Path,
     output_type: LabellerOutputTypes = LabellerOutputTypes.manifest,
     additional_context: Path | str | Graph = None,
-    http_client: httpx.Client = None,
+    http_client: httpx2.Client = None,
 ) -> set | Graph | None:
     """Main function for labeller module"""
     if not isinstance(output_type, LabellerOutputTypes):
@@ -68,6 +68,11 @@ def label(
         elif isinstance(additional_context, Path):
             additional_context = load_graph(additional_context)
 
+        if http_client is None:
+            with httpx2.Client() as client:
+                return get_labels(
+                    iris_missing_labels, additional_context, "graph", client
+                )
         return get_labels(iris_missing_labels, additional_context, "graph", http_client)
 
     else:  # output_type == LabellerOutputTypes.manifest

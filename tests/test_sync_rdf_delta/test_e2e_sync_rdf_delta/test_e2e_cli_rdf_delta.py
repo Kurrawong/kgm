@@ -2,7 +2,7 @@ import io
 import time
 from pathlib import Path
 
-import httpx
+import httpx2
 from rdflib.query import Result
 from typer.testing import CliRunner
 
@@ -51,7 +51,7 @@ def test_sync_rdf_delta(sparql_endpoint: str, delta_url: str, datasource: str):
         "Accept": "application/sparql-results+json",
     }
     time.sleep(0.5)
-    response = httpx.post(sparql_endpoint, headers=headers, content=query)
+    response = httpx2.post(sparql_endpoint, headers=headers, content=query)
     response.raise_for_status()
     result = Result.parse(
         io.BytesIO(response.content), response.headers["Content-Type"].split(";")[0]

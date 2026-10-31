@@ -5,7 +5,7 @@ import typer
 
 from kgm.event.client import DeltaEventClient
 from kgm.event.syncer import sync_rdf_delta
-from kgm.utils import make_httpx_client
+from kgm.utils import make_httpx2_client
 
 app = typer.Typer()
 
@@ -32,7 +32,7 @@ def event_sync_command(
     ] = 60,
 ):
     cwd = Path.cwd()
-    http_client = make_httpx_client(username, password, timeout)
+    http_client = make_httpx2_client(username, password, timeout)
     event_client = DeltaEventClient(delta_url, delta_datasource)
     try:
         sync_rdf_delta(cwd, manifest, endpoint, http_client, event_client)

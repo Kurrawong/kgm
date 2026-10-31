@@ -11,7 +11,7 @@ from kgm.cli.app import app
 from kgm.cli.console import console
 from kgm.endpoint import endpoint_errors
 from kgm.syncer import sync
-from kgm.utils import make_httpx_client
+from kgm.utils import make_httpx2_client
 
 
 class BooleanValue(str, Enum):
@@ -60,7 +60,7 @@ def sync_command(
         r = sync(
             manifest,
             endpoint,
-            make_httpx_client(username, password, timeout),
+            make_httpx2_client(username, password, timeout),
             update_remote,
             update_local,
             add_remote,

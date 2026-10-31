@@ -3,7 +3,7 @@
 import re
 from contextlib import contextmanager
 
-import httpx
+import httpx2
 
 
 class SPARQLEndpointError(RuntimeError):
@@ -12,7 +12,7 @@ class SPARQLEndpointError(RuntimeError):
 
 @contextmanager
 def endpoint_errors(endpoint: str):
-    url = httpx.URL(endpoint)
+    url = httpx2.URL(endpoint)
     display_url = url.copy_with(username=None, password=None, query=None, fragment=None)
 
     def inaccessible(reason):
@@ -22,7 +22,7 @@ def endpoint_errors(endpoint: str):
 
     try:
         yield
-    except httpx.RequestError as error:
+    except httpx2.RequestError as error:
         request_url = error.request.url
         if (request_url.scheme, request_url.host, request_url.port) != (
             url.scheme,
@@ -32,7 +32,7 @@ def endpoint_errors(endpoint: str):
             raise
         reason = (
             "request timed out"
-            if isinstance(error, httpx.TimeoutException)
+            if isinstance(error, httpx2.TimeoutException)
             else "connection failed"
         )
         raise inaccessible(reason) from error

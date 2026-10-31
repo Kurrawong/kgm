@@ -1,13 +1,13 @@
 import warnings
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 from kurra.db.gsp import delete, upload
-from kurra.sparql import query
 from typer.testing import CliRunner
 
 from kgm.loader import ReturnDatatype, load
+from kgm.sparql import query
 
 runner = CliRunner()
 
@@ -16,14 +16,15 @@ def test_load_delegates_to_sync(monkeypatch):
     calls = []
 
     def fake_sync(
-            manifest,
-            endpoint,
-            http_client,
-            update_remote,
-            update_local,
-            add_remote,
-            add_local,
-            add_to_system_graph):
+        manifest,
+        endpoint,
+        http_client,
+        update_remote,
+        update_local,
+        add_remote,
+        add_local,
+        add_to_system_graph,
+    ):
         calls.append((manifest, endpoint, http_client))
         return {"delegated": True}
 
@@ -173,7 +174,7 @@ def test_load_to_fuseki_basic_auth(sparql_endpoint):
             }
         }      
         """
-    client = httpx.Client(auth=("admin", "admin"))
+    client = httpx2.Client(auth=("admin", "admin"))
     r = query(
         sparql_endpoint,
         q,
@@ -260,7 +261,7 @@ def test_load_returns_dataset():
 #             }
 #         }
 #         """
-#     client = httpx.Client(auth=("admin", "admin"))
+#     client = httpx2.Client(auth=("admin", "admin"))
 #     r = query(
 #         sparql_endpoint,
 #         q,

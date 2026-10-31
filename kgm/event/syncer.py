@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Generator
 
-import httpx
+import httpx2
 from git import Repo
 from rdflib import RDF, SDO, BNode, Dataset, Graph, Literal, URIRef
 from rdflib.compare import to_canonical_graph
@@ -43,7 +43,7 @@ def _add_commit_hash_to_dataset(commit_hash: str, ds: Dataset) -> Dataset:
 
 
 def _retrieve_commit_hash(
-    vg_iri: URIRef, sparql_endpoint: str, http_client: httpx.Client
+    vg_iri: URIRef, sparql_endpoint: str, http_client: httpx2.Client
 ) -> str | None:
     """Retrieve the current commit hash from the SPARQL endpoint's Olis system graph.
 
@@ -230,7 +230,7 @@ def sync_rdf_delta(
     current_working_directory: Path,
     manifest: Path | tuple[Path, Path, Graph],
     sparql_endpoint: str,
-    http_client: httpx.Client,
+    http_client: httpx2.Client,
     event_client: EventClient,
 ):
     """Synchronize a KGM's resources with an event-based system that takes RDF patches.

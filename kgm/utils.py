@@ -4,14 +4,14 @@ from collections.abc import Generator
 from enum import Enum
 from pathlib import Path
 
-import httpx
-from kurra.sparql import query
+import httpx2
 from rdflib import BNode, Graph, Literal, Node, URIRef
 from rdflib.namespace import DCAT, OWL, PROF, RDF, SDO, SKOS, XSD
 
 import kgm
 from kgm.definednamespaces import MRR, PREZ
 from kgm.rdf import load_graph
+from kgm.sparql import query
 
 KNOWN_PROFILES = {
     URIRef("http://www.opengis.net/def/geosparql"): {
@@ -185,7 +185,7 @@ def get_catalogue_iri_from_manifest(
 def target_contains_this_manifests_catalogue(
     manifest: Path | tuple[Path, Path, Graph],
     sparql_endpoint: str = None,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> bool:
     # get the IRI of the catalogue from the manifest
     cat_iri = get_catalogue_iri_from_manifest(manifest)
@@ -216,7 +216,7 @@ def target_contains_this_manifests_catalogue(
     )
 
 
-def make_httpx_client(
+def make_httpx2_client(
     sparql_username: str = None,
     sparql_password: str = None,
     timeout: int = 60,
@@ -224,8 +224,8 @@ def make_httpx_client(
     auth = None
     if sparql_username:
         if sparql_password:
-            auth = httpx.BasicAuth(sparql_username, sparql_password)
-    return httpx.Client(auth=auth, timeout=timeout)
+            auth = httpx2.BasicAuth(sparql_username, sparql_password)
+    return httpx2.Client(auth=auth, timeout=timeout)
 
 
 def get_artifact_main_entity_iri(
@@ -440,7 +440,7 @@ def get_version_indicators_local(
 def get_version_indicators_sparql(
     main_entity: str,
     sparql_endpoint: str,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> dict:
     if not sparql_endpoint.startswith("http") and "://" in str(sparql_endpoint):
         raise ValueError(
@@ -590,7 +590,7 @@ def compare_version_indicators(first: dict, second: dict) -> VersionIndicatorCom
 def which_is_more_recent(
     version_indicators: dict,
     sparql_endpoint: str = None,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> VersionIndicatorComparison:
     """Tests to see if the given artifact is more recent than a previously stored copy of its content"""
 
@@ -767,7 +767,7 @@ def store_remote_artifact_locally(
     manifest: Path | tuple[Path, Path, Graph],
     sparql_endpoint: str,
     graph_id: str,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> Graph:
     """Writes a remote graph to a local file and registers that file as a Resource in the given Manifest.
 
@@ -821,7 +821,7 @@ def update_local_artifact(
     artifact_path: Path,
     sparql_endpoint: str,
     graph_id: str,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ):
     manifest_path, manifest_root, manifest_graph = get_manifest_paths_and_graph(
         manifest

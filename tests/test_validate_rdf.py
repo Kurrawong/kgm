@@ -1,7 +1,7 @@
 from importlib import import_module
 from unittest.mock import Mock
 
-import httpx
+import httpx2
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import PROF, RDF, SDO
@@ -121,13 +121,13 @@ def test_rdf_check_handles_other_rdf_formats(
 )
 def test_remote_rdf_errors_identify_url(monkeypatch, url):
     rdf_module = import_module("kgm.rdf")
-    response = httpx.Response(
+    response = httpx2.Response(
         200,
         content=b"invalid RDF",
         headers={"content-type": "application/n-triples"},
-        request=httpx.Request("GET", url),
+        request=httpx2.Request("GET", url),
     )
-    monkeypatch.setattr(rdf_module.httpx, "get", Mock(return_value=response))
+    monkeypatch.setattr(rdf_module.httpx2, "get", Mock(return_value=response))
     with pytest.raises(RDFParseError) as exc_info:
         check_rdf_syntax(url)
     assert url in str(exc_info.value)

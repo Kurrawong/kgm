@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 from testcontainers.compose import DockerCompose
 
@@ -44,7 +44,7 @@ def client(delta_port: int, datasource: str):
 
 @pytest.fixture
 def http_client():
-    with httpx.Client() as _client:
+    with httpx2.Client() as _client:
         yield _client
 
 

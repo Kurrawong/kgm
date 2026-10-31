@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest.mock import Mock
 
-import httpx
+import httpx2
 import pytest
 from rdflib import RDF, SDO, Dataset, Graph, Literal, URIRef
 from rdflib.compare import isomorphic
@@ -51,12 +51,12 @@ def test_retrieve_commit_hash_from_sparql_endpoint(monkeypatch: pytest.MonkeyPat
         b'<https://example.com/demo-vocabs> <https://schema.org/version> "1234567890" .'
     )
     response = Mock(
-        spec=httpx.Response,
+        spec=httpx2.Response,
         content=content,
         headers={"Content-Type": "application/n-triples"},
     )
-    monkeypatch.setattr(httpx.Client, "post", Mock(return_value=response))
-    with httpx.Client() as client:
+    monkeypatch.setattr(httpx2.Client, "post", Mock(return_value=response))
+    with httpx2.Client() as client:
         commit_hash = _retrieve_commit_hash(
             URIRef("https://example.com/demo-vocabs"), "", client
         )

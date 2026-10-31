@@ -1,7 +1,7 @@
 from importlib import import_module
 from unittest.mock import Mock
 
-import httpx
+import httpx2
 import pytest
 from rdflib import Graph, URIRef
 from typer.testing import CliRunner
@@ -28,10 +28,10 @@ def test_endpoint_failure_is_printed_without_traceback(
 
     def respond(request):
         if failure == "connect":
-            raise httpx.ConnectError("Connection refused", request=request)
+            raise httpx2.ConnectError("Connection refused", request=request)
         if failure == "timeout":
-            raise httpx.ReadTimeout("Read timed out", request=request)
-        return httpx.Response(failure, text="<html>Verbose server error</html>")
+            raise httpx2.ReadTimeout("Read timed out", request=request)
+        return httpx2.Response(failure, text="<html>Verbose server error</html>")
 
     syncer = import_module("kgm.syncer")
     monkeypatch.setattr(
@@ -54,11 +54,11 @@ def test_endpoint_failure_is_printed_without_traceback(
         side_effect=AssertionError("Should not upload after endpoint failure")
     )
     monkeypatch.setattr(syncer, "upload", upload)
-    with httpx.Client(transport=httpx.MockTransport(respond)) as client:
+    with httpx2.Client(transport=httpx2.MockTransport(respond)) as client:
         module = import_module(
             "kgm.cli.commands.sync" if command == "sync" else "kgm.loader"
         )
-        monkeypatch.setattr(module, "make_httpx_client", lambda *args: client)
+        monkeypatch.setattr(module, "make_httpx2_client", lambda *args: client)
         args = (
             ["sync", "manifest.nt", endpoint]
             if command == "sync"
@@ -86,11 +86,11 @@ def test_unrelated_runtime_error_is_preserved():
 
 
 def test_other_hosts_connection_error_is_preserved():
-    error = httpx.ConnectError(
+    error = httpx2.ConnectError(
         "Background unavailable",
-        request=httpx.Request("GET", "https://background.example.com/sparql"),
+        request=httpx2.Request("GET", "https://background.example.com/sparql"),
     )
-    with pytest.raises(httpx.ConnectError) as exc_info:
+    with pytest.raises(httpx2.ConnectError) as exc_info:
         with endpoint_errors("https://example.com/sparql"):
             raise error
     assert exc_info.value is error

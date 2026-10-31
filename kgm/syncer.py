@@ -1,14 +1,14 @@
 from pathlib import Path
 
-import httpx
+import httpx2
 from kurra.db.gsp import clear, delete, upload
-from kurra.sparql import query
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS, PROF, RDF, SDO, SKOS
 
 import kgm.utils
 from kgm.definednamespaces import MRR, OLIS
 from kgm.rdf import load_graph
+from kgm.sparql import query
 from kgm.utils import (
     SYSTEM_GRAPH_IRI,
     VersionIndicatorComparison,
@@ -25,7 +25,7 @@ from kgm.utils import (
 def sync(
     manifest: Path | tuple[Path, Path, Graph],
     sparql_endpoint: str = None,
-    http_client: httpx.Client = httpx.Client(),
+    http_client: httpx2.Client = httpx2.Client(),
     update_remote: bool = True,
     update_local: bool = True,
     add_remote: bool = True,
@@ -41,7 +41,7 @@ def sync(
     Args:
         manifest: the KGM manifest describing the local resources
         sparql_endpoint: a SPARQL endpoint URL to sync resources to
-        http_client: an httpx client to use for making requests
+        http_client: an httpx2 client to use for making requests
         update_remote: whether to update the remote artifacts with newer local ones
         update_local: whether to update the local artifacts with newer remote ones
         add_remote: whether to add local artifacts to the remote location if missing

@@ -1,16 +1,16 @@
 from datetime import datetime
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
-from kurra.sparql import query
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import PROF, SDO, SKOS, XSD
 from typer.testing import CliRunner
 
 import kgm.loader
+from kgm.sparql import query
 from kgm.utils import (
     VersionIndicatorComparison,
     absolutise_path,
@@ -24,7 +24,7 @@ from kgm.utils import (
     get_version_indicators_local,
     get_version_indicators_sparql,
     localise_path,
-    make_httpx_client,
+    make_httpx2_client,
     path_or_url,
     target_contains_this_manifests_catalogue,
     which_is_more_recent,
@@ -174,7 +174,7 @@ def test_get_catalogue_iri_from_manifest():
 def test_target_contains_this_manifests_catalogue(sparql_endpoint):
     MANIFEST = TESTS_DIR / "demo-vocabs" / "manifest.ttl"
 
-    with httpx.Client() as http_client:
+    with httpx2.Client() as http_client:
         # positive test
         query(sparql_endpoint, "DROP ALL", http_client=http_client)
         kgm.loader.sync(MANIFEST, sparql_endpoint, None, True, False, True, False)
@@ -186,7 +186,7 @@ def test_target_contains_this_manifests_catalogue(sparql_endpoint):
 
 
 # TODO add tests
-def test_make_httpx_client():
+def test_make_httpx2_client():
     pass
 
 
@@ -276,7 +276,7 @@ def test_get_version_indicators_sparql(sparql_endpoint):
     ASSET_PATH = TESTS_DIR / "demo-vocabs" / "vocabs" / "language-test.ttl"
     ASSET_GRAPH_IRI = "https://example.com/demo-vocabs/language-test"
 
-    c = make_httpx_client()
+    c = make_httpx2_client()
 
     upload(sparql_endpoint, ASSET_PATH, ASSET_GRAPH_IRI, False, http_client=c)
 
@@ -438,7 +438,7 @@ def test_which_is_more_recent(sparql_endpoint):
     ARTIFACT_PATH = TESTS_DIR / "demo-vocabs" / "vocabs" / "language-test.ttl"
     ARTIFACT_MAIN_ENTITY = "https://example.com/demo-vocabs/language-test"
 
-    c = make_httpx_client()
+    c = make_httpx2_client()
 
     upload(sparql_endpoint, ARTIFACT_PATH, ARTIFACT_MAIN_ENTITY, False, http_client=c)
 

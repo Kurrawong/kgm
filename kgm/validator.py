@@ -9,7 +9,7 @@ specification (see https://prez.dev/manifest/) and checks that all the resources
 from pathlib import Path
 from pickle import dump, load
 
-import httpx
+import httpx2
 import kurra.shacl
 from kurra.db.gsp import get as gsp_get
 from pyparsing import Literal
@@ -30,7 +30,12 @@ def _ensure_validator(iri: str) -> None:
         return
 
     with parsing_source(iri, "validator"):
-        graph = gsp_get("https://fuseki.dev.kurrawong.ai/semback/sparql", iri)
+        with httpx2.Client() as client:
+            graph = gsp_get(
+                "https://fuseki.dev.kurrawong.ai/semback/sparql",
+                iri,
+                http_client=client,
+            )
     if not isinstance(graph, Graph) or not graph:
         raise ManifestValidationError(
             f"The validator <{iri}> indicated in the manifest file is not known to the Semantic Background"
@@ -91,7 +96,7 @@ def validate(manifest: Path, rdf: bool = False) -> Graph:
     def literal_resolves_as_file_folder_or_url(lit: Literal):
         l_str = str(lit)
         if l_str.startswith("http") and "://" in l_str:
-            r = httpx.get(l_str)
+            r = httpx2.get(l_str)
             if 200 <= r.status_code < 400:
                 pass
             else:

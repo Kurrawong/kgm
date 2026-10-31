@@ -3,7 +3,7 @@ import time
 from pathlib import Path
 from textwrap import dedent
 
-import httpx
+import httpx2
 import pytest
 from git import Repo
 from rdflib import RDF, SKOS, Graph, Literal, URIRef
@@ -25,7 +25,10 @@ def repo(tmp_path: Path):
 
 
 def query(
-    query: str, sparql_endpoint: str, http_client: httpx.Client, headers: dict[str, str]
+    query: str,
+    sparql_endpoint: str,
+    http_client: httpx2.Client,
+    headers: dict[str, str],
 ) -> Result:
     response = http_client.post(
         sparql_endpoint,
@@ -41,7 +44,7 @@ def query(
 def test(
     repo: Repo,
     sparql_endpoint: str,
-    http_client: httpx.Client,
+    http_client: httpx2.Client,
     client: DeltaEventClient,
 ):
     cwd = Path(repo.working_tree_dir)
