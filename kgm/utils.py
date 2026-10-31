@@ -1,4 +1,5 @@
 import datetime
+import re
 from collections.abc import Generator
 from enum import Enum
 from pathlib import Path
@@ -7,7 +8,7 @@ import httpx
 from kurra.file import load_graph
 from kurra.sparql import query
 from rdflib import BNode, Dataset, Graph, Literal, Node, URIRef
-from rdflib.namespace import DCAT, OWL, PROF, RDF, SDO, SH, SKOS
+from rdflib.namespace import DCAT, OWL, PROF, RDF, SDO, SKOS, XSD
 
 import kgm
 from kgm.definednamespaces import MRR, PREZ
@@ -507,6 +508,25 @@ class VersionIndicatorComparison(Enum):
     CantCalculate = "cant_calculate"
 
 
+def _modified_date_as_date(value: datetime.date | Literal) -> datetime.date:
+    """Compare calendar dates, interpreting an RDF year as January 1 of that year.
+
+    Times and timezone offsets are ignored, consistent with date-only comparison.
+    """
+    if isinstance(value, Literal):
+        if value.datatype == XSD.gYear:
+            year = re.fullmatch(r"([+-]?\d{4,})(?:Z|[+-]\d{2}:\d{2})?", str(value))
+            if year is None:
+                raise ValueError(f"Invalid xsd:gYear modified date: {value}")
+            return datetime.date(int(year[1]), 1, 1)
+        value = value.toPython()
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    raise TypeError(f"Unsupported modified date: {value!r}")
+
+
 def compare_version_indicators(first: dict, second: dict) -> VersionIndicatorComparison:
     """Compares Modified Date, Version IRI & Version info for each and returns latest"""
 
@@ -529,14 +549,11 @@ def compare_version_indicators(first: dict, second: dict) -> VersionIndicatorCom
         return VersionIndicatorComparison.CantCalculate
 
     if has_modified_date_comparison:
-        first_date = (
-            first["modified_date"].date()
-            if isinstance(first["modified_date"], datetime.datetime)
-            else first["modified_date"]
-        )
-        if first_date > second["modified_date"]:
+        first_date = _modified_date_as_date(first["modified_date"])
+        second_date = _modified_date_as_date(second["modified_date"])
+        if first_date > second_date:
             first_score += 1
-        elif first_date == second["modified_date"]:
+        elif first_date == second_date:
             pass
         else:
             second_score += 1

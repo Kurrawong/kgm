@@ -7,7 +7,7 @@ from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
 from kurra.sparql import query
 from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import PROF, SDO, SKOS
+from rdflib.namespace import PROF, SDO, SKOS, XSD
 from typer.testing import CliRunner
 
 import kgm.loader
@@ -328,6 +328,68 @@ def test_compare_version_indicators():
     }
 
     assert compare_version_indicators(six, seven) == VersionIndicatorComparison.Second
+
+
+@pytest.mark.parametrize(
+    "first,second,expected",
+    [
+        (
+            date_parse("2026-05-25").date(),
+            Literal("2019", datatype=XSD.gYear),
+            VersionIndicatorComparison.First,
+        ),
+        (
+            Literal("2019", datatype=XSD.gYear),
+            date_parse("2026-05-25").date(),
+            VersionIndicatorComparison.Second,
+        ),
+        (
+            Literal("2026", datatype=XSD.gYear),
+            Literal("2019", datatype=XSD.gYear),
+            VersionIndicatorComparison.First,
+        ),
+        (
+            Literal("2019", datatype=XSD.gYear),
+            Literal("2019", datatype=XSD.gYear),
+            VersionIndicatorComparison.Neither,
+        ),
+        (
+            Literal("2019Z", datatype=XSD.gYear),
+            date_parse("2019-01-01").date(),
+            VersionIndicatorComparison.Neither,
+        ),
+        (
+            Literal("2019+10:00", datatype=XSD.gYear),
+            date_parse("2019-05-25").date(),
+            VersionIndicatorComparison.Second,
+        ),
+        (
+            Literal("2026-05-25", datatype=XSD.date),
+            Literal("2019", datatype=XSD.gYear),
+            VersionIndicatorComparison.First,
+        ),
+        (
+            datetime(2026, 5, 25, 12),
+            datetime(2026, 5, 25, 18),
+            VersionIndicatorComparison.Neither,
+        ),
+        (
+            date_parse("2026-05-25").date(),
+            datetime(2026, 5, 26, 12),
+            VersionIndicatorComparison.Second,
+        ),
+        (
+            Literal("2026-05-25T12:00:00Z", datatype=XSD.dateTime),
+            Literal("2019", datatype=XSD.gYear),
+            VersionIndicatorComparison.First,
+        ),
+    ],
+)
+def test_compare_version_indicators_modified_date_types(first, second, expected):
+    assert (
+        compare_version_indicators({"modified_date": first}, {"modified_date": second})
+        == expected
+    )
 
 
 def test_which_is_more_recent(sparql_endpoint):
