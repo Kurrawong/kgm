@@ -7,13 +7,11 @@ specification (see https://prez.dev/manifest/) and checks that all the resources
 ~$ python validate.py {MANIFEST_FILE_PATH}"""
 
 from pathlib import Path
-from pickle import dump, load
 
 import httpx2
 import kurra.shacl
-from kurra.db.gsp import get as gsp_get
 from pyparsing import Literal
-from rdflib import BNode, Dataset, Graph, URIRef
+from rdflib import BNode, Graph, URIRef
 from rdflib.namespace import DCTERMS, PROF, SDO
 
 from kgm.rdf import check_rdf_syntax, load_graph, parsing_source
@@ -25,48 +23,16 @@ class ManifestValidationError(Exception):
 
 
 def _ensure_validator(iri: str) -> None:
-    """Cache just the requested validator, using Kurra's shared cache format."""
+    """Ask Kurra to cache only the requested validator, if missing."""
     if iri in kurra.shacl.list_local_validators():
         return
 
     with parsing_source(iri, "validator"):
-        with httpx2.Client() as client:
-            graph = gsp_get(
-                "https://fuseki.dev.kurrawong.ai/semback/sparql",
-                iri,
-                http_client=client,
-            )
-    if not isinstance(graph, Graph) or not graph:
+        validators = kurra.shacl.sync_validators(validator_iris=[iri])
+    if iri not in validators:
         raise ManifestValidationError(
             f"The validator <{iri}> indicated in the manifest file is not known to the Semantic Background"
         )
-
-    cache = Path.home() / ".kurra"
-    cache.mkdir(parents=True, exist_ok=True)
-    validators_path = cache / "validators.pkl"
-    ids_path = cache / "validator_ids.pkl"
-    if validators_path.exists():
-        with validators_path.open("rb") as stream:
-            validators = load(stream)
-    else:
-        validators = Dataset()
-    cached_graph = validators.graph(URIRef(iri))
-    cached_graph += graph
-
-    if ids_path.exists():
-        with ids_path.open("rb") as stream:
-            ids = load(stream)
-    else:
-        ids = {}
-    for cached_graph in validators.graphs():
-        identifier = cached_graph.identifier
-        if str(identifier) != "urn:x-rdflib:default" and identifier not in ids:
-            ids[identifier] = max(ids.values(), default=0) + 1
-
-    with validators_path.open("wb") as stream:
-        dump(validators, stream)
-    with ids_path.open("wb") as stream:
-        dump(ids, stream)
 
 
 def validate(manifest: Path, rdf: bool = False) -> Graph:
