@@ -3,7 +3,6 @@ import json
 import shutil
 from pathlib import Path
 
-import httpx2
 from rdflib import RDF, SDO, URIRef
 from rdflib.compare import isomorphic
 from typer.testing import CliRunner
@@ -14,6 +13,7 @@ from kgm.definednamespaces import OLIS
 from kgm.loader import load
 from kgm.sparql import query
 from kgm.syncer import make_catalogue, sync
+from kgm.utils import make_httpx2_client
 
 runner = CliRunner()
 
@@ -68,7 +68,7 @@ def test_sync(sparql_endpoint, tmp_path):
     a = sync(
         MANIFEST_FILE_LOCAL,
         sparql_endpoint,
-        httpx2.Client(),
+        make_httpx2_client(),
         False,
         False,
         False,

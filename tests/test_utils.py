@@ -1,7 +1,6 @@
 from datetime import datetime
 from pathlib import Path
 
-import httpx2
 import pytest
 from dateutil.parser import parse as date_parse
 from kurra.db.gsp import upload
@@ -174,7 +173,7 @@ def test_get_catalogue_iri_from_manifest():
 def test_target_contains_this_manifests_catalogue(sparql_endpoint):
     MANIFEST = TESTS_DIR / "demo-vocabs" / "manifest.ttl"
 
-    with httpx2.Client() as http_client:
+    with make_httpx2_client() as http_client:
         # positive test
         query(sparql_endpoint, "DROP ALL", http_client=http_client)
         kgm.loader.sync(MANIFEST, sparql_endpoint, None, True, False, True, False)

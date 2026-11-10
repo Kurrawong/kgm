@@ -17,9 +17,11 @@ def query(
     return_bindings_only: bool = False,
 ):
     """Use Kurra's HTTPX2 query handling, closing clients created here."""
+    from kgm.utils import make_httpx2_client
+
     with ExitStack() as stack:
         if http_client is None:
-            http_client = stack.enter_context(httpx2.Client())
+            http_client = stack.enter_context(make_httpx2_client())
         return kurra_query(
             p,
             q,

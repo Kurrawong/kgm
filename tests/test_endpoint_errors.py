@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 from kgm.cli import app
 from kgm.definednamespaces import MRR
 from kgm.endpoint import SPARQLEndpointError, endpoint_errors
+from kgm.utils import make_httpx2_client
 
 
 @pytest.mark.parametrize("command", ["sync", "load"])
@@ -54,7 +55,7 @@ def test_endpoint_failure_is_printed_without_traceback(
         side_effect=AssertionError("Should not upload after endpoint failure")
     )
     monkeypatch.setattr(syncer, "upload", upload)
-    with httpx2.Client(transport=httpx2.MockTransport(respond)) as client:
+    with make_httpx2_client(transport=httpx2.MockTransport(respond)) as client:
         module = import_module(
             "kgm.cli.commands.sync" if command == "sync" else "kgm.loader"
         )

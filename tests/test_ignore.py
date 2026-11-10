@@ -58,8 +58,8 @@ def manifest_with_ignored_resources(tmp_path, monkeypatch):
         validator_module.kurra.shacl, "validate", Mock(return_value=(True, Graph(), ""))
     )
     monkeypatch.setattr(
-        validator_module.httpx2,
-        "get",
+        validator_module,
+        "make_httpx2_client",
         Mock(side_effect=AssertionError("Ignored URL accessed")),
     )
     return path, graph, catalogue

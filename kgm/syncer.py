@@ -25,7 +25,7 @@ from kgm.utils import (
 def sync(
     manifest: Path | tuple[Path, Path, Graph],
     sparql_endpoint: str = None,
-    http_client: httpx2.Client = httpx2.Client(),
+    http_client: httpx2.Client | None = None,
     update_remote: bool = True,
     update_local: bool = True,
     add_remote: bool = True,
@@ -52,6 +52,19 @@ def sync(
     Returns:
         a dictionary of the state of synchronisation, per artifact
     """
+
+    if http_client is None:
+        with kgm.utils.make_httpx2_client() as client:
+            return sync(
+                manifest,
+                sparql_endpoint,
+                client,
+                update_remote=update_remote,
+                update_local=update_local,
+                add_remote=add_remote,
+                add_local=add_local,
+                add_to_system_graph=add_to_system_graph,
+            )
 
     # list all from resources
     # find all matching to resources

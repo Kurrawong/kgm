@@ -8,14 +8,18 @@ specification (see https://prez.dev/manifest/) and checks that all the resources
 
 from pathlib import Path
 
-import httpx2
 import kurra.shacl
 from pyparsing import Literal
 from rdflib import BNode, Graph, URIRef
 from rdflib.namespace import DCTERMS, PROF, SDO
 
 from kgm.rdf import check_rdf_syntax, load_graph, parsing_source
-from kgm.utils import get_background_graph, get_files_from_artifact, resource_is_ignored
+from kgm.utils import (
+    get_background_graph,
+    get_files_from_artifact,
+    make_httpx2_client,
+    resource_is_ignored,
+)
 
 
 class ManifestValidationError(Exception):
@@ -62,7 +66,8 @@ def validate(manifest: Path, rdf: bool = False) -> Graph:
     def literal_resolves_as_file_folder_or_url(lit: Literal):
         l_str = str(lit)
         if l_str.startswith("http") and "://" in l_str:
-            r = httpx2.get(l_str)
+            with make_httpx2_client() as client:
+                r = client.get(l_str)
             if 200 <= r.status_code < 400:
                 pass
             else:

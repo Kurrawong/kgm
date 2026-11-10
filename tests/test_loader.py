@@ -1,13 +1,13 @@
 import warnings
 from pathlib import Path
 
-import httpx2
 import pytest
 from kurra.db.gsp import delete, upload
 from typer.testing import CliRunner
 
 from kgm.loader import ReturnDatatype, load
 from kgm.sparql import query
+from kgm.utils import make_httpx2_client
 
 runner = CliRunner()
 
@@ -174,7 +174,7 @@ def test_load_to_fuseki_basic_auth(sparql_endpoint):
             }
         }      
         """
-    client = httpx2.Client(auth=("admin", "admin"))
+    client = make_httpx2_client("admin", "admin")
     r = query(
         sparql_endpoint,
         q,
@@ -261,7 +261,7 @@ def test_load_returns_dataset():
 #             }
 #         }
 #         """
-#     client = httpx2.Client(auth=("admin", "admin"))
+#     client = make_httpx2_client("admin", "admin")
 #     r = query(
 #         sparql_endpoint,
 #         q,

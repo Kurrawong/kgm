@@ -14,7 +14,11 @@ from rdflib.namespace import PROF, RDF
 
 from kgm.definednamespaces import MRR, PREZ
 from kgm.rdf import load_graph
-from kgm.utils import denormalise_artifacts, get_manifest_paths_and_graph
+from kgm.utils import (
+    denormalise_artifacts,
+    get_manifest_paths_and_graph,
+    make_httpx2_client,
+)
 
 
 class LabellerOutputTypes(str, Enum):
@@ -69,7 +73,7 @@ def label(
             additional_context = load_graph(additional_context)
 
         if http_client is None:
-            with httpx2.Client() as client:
+            with make_httpx2_client() as client:
                 return get_labels(
                     iris_missing_labels, additional_context, "graph", client
                 )

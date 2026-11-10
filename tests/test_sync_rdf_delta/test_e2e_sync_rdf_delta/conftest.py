@@ -1,10 +1,10 @@
 from pathlib import Path
 
-import httpx2
 import pytest
 from testcontainers.compose import DockerCompose
 
 from kgm.event.client import DeltaEventClient
+from kgm.utils import make_httpx2_client
 
 DELTA_PORT = 9999
 FUSEKI_PORT = 9998
@@ -44,7 +44,7 @@ def client(delta_port: int, datasource: str):
 
 @pytest.fixture
 def http_client():
-    with httpx2.Client() as _client:
+    with make_httpx2_client() as _client:
         yield _client
 
 

@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 from kgm.cli import app
 from kgm.definednamespaces import MRR, PREZ
 from kgm.rdf import RDFParseError, check_rdf_syntax
-from kgm.utils import denormalise_artifacts
+from kgm.utils import denormalise_artifacts, make_httpx2_client
 from kgm.validator import validate
 
 
@@ -120,14 +120,16 @@ def test_rdf_check_handles_other_rdf_formats(
     "url", ["https://example.com/broken.nt", "https://example.com/data"]
 )
 def test_remote_rdf_errors_identify_url(monkeypatch, url):
-    rdf_module = import_module("kgm.rdf")
     response = httpx2.Response(
         200,
         content=b"invalid RDF",
         headers={"content-type": "application/n-triples"},
         request=httpx2.Request("GET", url),
     )
-    monkeypatch.setattr(rdf_module.httpx2, "get", Mock(return_value=response))
+    client = make_httpx2_client(
+        transport=httpx2.MockTransport(lambda request: response)
+    )
+    monkeypatch.setattr("kgm.utils.make_httpx2_client", lambda: client)
     with pytest.raises(RDFParseError) as exc_info:
         check_rdf_syntax(url)
     assert url in str(exc_info.value)

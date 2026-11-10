@@ -13,6 +13,7 @@ from kgm.event.syncer import (
     _retrieve_commit_hash,
 )
 from kgm.syncer import get_sync_dataset
+from kgm.utils import make_httpx2_client
 
 
 def test_add_commit_hash_to_dataset():
@@ -56,7 +57,7 @@ def test_retrieve_commit_hash_from_sparql_endpoint(monkeypatch: pytest.MonkeyPat
         headers={"Content-Type": "application/n-triples"},
     )
     monkeypatch.setattr(httpx2.Client, "post", Mock(return_value=response))
-    with httpx2.Client() as client:
+    with make_httpx2_client() as client:
         commit_hash = _retrieve_commit_hash(
             URIRef("https://example.com/demo-vocabs"), "", client
         )

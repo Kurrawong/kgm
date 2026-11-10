@@ -219,13 +219,15 @@ def target_contains_this_manifests_catalogue(
 def make_httpx2_client(
     sparql_username: str = None,
     sparql_password: str = None,
-    timeout: int = 60,
-):
+    timeout: int = 120,
+    *,
+    transport: httpx2.BaseTransport | None = None,
+) -> httpx2.Client:
     auth = None
     if sparql_username:
         if sparql_password:
             auth = httpx2.BasicAuth(sparql_username, sparql_password)
-    return httpx2.Client(auth=auth, timeout=timeout)
+    return httpx2.Client(auth=auth, timeout=timeout, transport=transport)
 
 
 def get_artifact_main_entity_iri(

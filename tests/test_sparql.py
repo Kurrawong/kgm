@@ -12,7 +12,7 @@ def test_httpx2_ask_results(value):
     def respond(request):
         return httpx2.Response(200, json={"head": {}, "boolean": value})
 
-    with httpx2.Client(transport=httpx2.MockTransport(respond)) as client:
+    with make_httpx2_client(transport=httpx2.MockTransport(respond)) as client:
         assert (
             query(
                 "https://example.com/sparql",
@@ -35,7 +35,7 @@ def test_httpx2_select_results():
             ]
         },
     }
-    with httpx2.Client(
+    with make_httpx2_client(
         transport=httpx2.MockTransport(
             lambda request: httpx2.Response(200, json=response)
         )
@@ -56,7 +56,7 @@ def test_httpx2_construct_results():
         "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
         "<https://schema.org/Dataset> ."
     )
-    with httpx2.Client(
+    with make_httpx2_client(
         transport=httpx2.MockTransport(lambda request: httpx2.Response(200, text=data))
     ) as client:
         result = query(

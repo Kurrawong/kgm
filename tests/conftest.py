@@ -2,11 +2,11 @@ import time
 from pathlib import Path
 
 import docker
-import httpx2
 import pytest
 from testcontainers.core.container import DockerContainer
 
 from kgm.sparql import query
+from kgm.utils import make_httpx2_client
 
 FUSEKI_IMAGE = "ghcr.io/kurrawong/fuseki-geosparql:git-main-e642d849"
 
@@ -53,13 +53,13 @@ def fuseki_container():
 def sparql_endpoint(fuseki_container):
     url = f"http://localhost:{fuseki_container.get_exposed_port(3030)}/ds"
     yield url
-    with httpx2.Client(auth=("admin", "admin")) as http_client:
+    with make_httpx2_client("admin", "admin") as http_client:
         query(url, "DROP ALL", http_client=http_client)
 
 
 @pytest.fixture(scope="function")
 def http_client():
-    _http_client = httpx2.Client(auth=("admin", "admin"))
+    _http_client = make_httpx2_client("admin", "admin")
 
     yield _http_client
     _http_client.close()
