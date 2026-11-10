@@ -1,6 +1,6 @@
 [project]
 name = "kgm"
-version = "2.2.3"
+version = "2.2.4"
 description = "A Python package that provides a series of functions to work with KGs & RDF files."
 authors = [{ name = "Nicholas Car", email = "nick@kurrawong.ai" }]
 requires-python = ">=3.15,<3.16"

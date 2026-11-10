@@ -441,6 +441,50 @@ def get_version_indicators_local(
     return
 
 
+def print_local_version_indicators(
+    file: Path | str, manifest: Path | str | None = None
+) -> None:
+    """Print the version metadata sync() reads from a local RDF file.
+
+    If the file is listed in the manifest, use its metadata before inspecting the RDF.
+    File size is reported for context but is not used in version comparison.
+    """
+    path = Path(file).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Not a local file: {path}")
+
+    indicators = {}
+    manifest_data = (path, path.parent, Graph())
+    if manifest is not None:
+        manifest_path = Path(manifest).resolve()
+        supplied_manifest = (
+            manifest_path,
+            manifest_path.parent,
+            load_graph(manifest_path),
+        )
+        for artifact, metadata in _get_manifest_artifact_metadata(
+            supplied_manifest
+        ).items():
+            if isinstance(artifact, Path) and artifact.resolve() == path:
+                print("Given file found as an artifact in the manifest")
+                indicators = metadata
+                manifest_data = supplied_manifest
+                break
+
+    get_version_indicators_local(manifest_data, path, indicators)
+
+    print(f"File: {file}")
+    for key, label in (
+        ("main_entity", "Main entity"),
+        ("modified_date", "Modified date"),
+        ("version_iri", "Version IRI"),
+        ("version_info", "Version info"),
+    ):
+        value = indicators.get(key)
+        print(f"{label}: {value if value is not None else '(not set)'}")
+    print(f"File size (not compared): {indicators['file_size']} bytes")
+
+
 def get_version_indicators_sparql(
     main_entity: str,
     sparql_endpoint: str,
@@ -618,11 +662,19 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
     Version Info
     Role
     Version Indicators"""
+    manifest_data = get_manifest_paths_and_graph(manifest)
+    artifacts_info = _get_manifest_artifact_metadata(manifest_data)
+    for artifact, metadata in artifacts_info.items():
+        if metadata["role"] in [MRR.CatalogueData, MRR.ResourceData]:
+            get_version_indicators_local(manifest_data, artifact, metadata)
+    return artifacts_info
+
+
+def _get_manifest_artifact_metadata(manifest: tuple[Path, Path, Graph]) -> dict:
+    """Read manifest declarations without opening or validating the artifacts."""
     artifacts_info = {}
 
-    manifest_path, manifest_root, manifest_graph = get_manifest_paths_and_graph(
-        manifest
-    )
+    _, _, manifest_graph = manifest
 
     # for each artifact, get what we can directly from the Manifest
     q = """
@@ -698,6 +750,22 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
                     prof:hasArtifact ?a ;
                     prof:hasRole ?r ;
                 .
+
+                OPTIONAL {
+                    ?x schema:mainEntity ?me .
+                }
+
+                OPTIONAL {
+                    ?x dcterms:modified|schema:dateModified ?dm .
+                }
+
+                OPTIONAL {
+                    ?x owl:versionIRI ?vi .
+                }
+
+                OPTIONAL {
+                    ?x owl:versionInfo|schema:version ?v .
+                }
                 
                 OPTIONAL {
                     ?x dcterms:conformsTo ?cc .
@@ -721,9 +789,7 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
         manifest_graph, q, return_format="python", return_bindings_only=True
     ):
         artifact = path_or_url(r["a"])
-        files = get_files_from_artifact(
-            (manifest_path, manifest_root, manifest_graph), Literal(artifact)
-        )
+        files = get_files_from_artifact(manifest, Literal(artifact))
 
         for file in files:
             me = URIRef(r["me"]) if r.get("me") is not None else None
@@ -741,7 +807,7 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
             artifacts_info[file] = {
                 "main_entity": me,
                 "role": role,
-                "date_modified": dm,
+                "modified_date": dm,
                 "version_iri": vi,
                 "version_info": v,
                 "file_size": None,
@@ -749,13 +815,6 @@ def denormalise_artifacts(manifest: Path | tuple[Path, Path, Graph]) -> dict:
                 "additional_type": atype,
                 "sync": sync,
             }
-
-    # get Version Indicators info only for Resources with certain Roles
-    for k, v in artifacts_info.items():
-        if v["role"] in [MRR.CatalogueData, MRR.ResourceData]:
-            get_version_indicators_local(
-                (manifest_path, manifest_root, manifest_graph), k, v
-            )
 
     return artifacts_info
 

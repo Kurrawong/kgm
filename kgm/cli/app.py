@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -10,9 +11,13 @@ from kgm import __version__
 from kgm.cli.console import console
 from kgm.endpoint import SPARQLEndpointError
 from kgm.rdf import RDFParseError
+from kgm.utils import print_local_version_indicators
 
 
 class KGMGroup(TyperGroup):
+    def list_commands(self, ctx: typer.Context) -> list[str]:
+        return sorted(super().list_commands(ctx))
+
     def invoke(self, ctx):
         try:
             return super().invoke(ctx)
@@ -71,3 +76,31 @@ def main(
     if version:
         console.print(__version__)
         raise typer.Exit()
+
+
+@app.command(
+    name="versiontest",
+    help=(
+        "Prints the version information that kgm sync uses when attempting "
+        "to synchronise a file with a SPARQL endpoint"
+    ),
+)
+def versiontest_command(
+    file: Annotated[
+        Path,
+        typer.Argument(exists=True, dir_okay=False, help="Path to a local RDF file"),
+    ],
+    manifest: Annotated[
+        Path | None,
+        typer.Argument(
+            exists=True,
+            dir_okay=False,
+            help="Optional manifest file with information about the file",
+        ),
+    ] = None,
+) -> None:
+    try:
+        print_local_version_indicators(file, manifest)
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=1) from error
