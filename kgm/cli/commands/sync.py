@@ -21,7 +21,7 @@ class BooleanValue(str, Enum):
 
 @app.command(
     name="sync",
-    help="Synchronize a KGM's resources with loaded copies of them in a SPARQL Endpoint",
+    help="Synchronize a Manifest's resources with loaded copies of them in a SPARQL Endpoint",
 )
 def sync_command(
     manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),

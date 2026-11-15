@@ -321,7 +321,7 @@ wheels = [
 
 [[package]]
 name = "kgm"
-version = "2.2.4"
+version = "2.2.5"
 source = { editable = "." }
 dependencies = [
     { name = "dateutils" },
@@ -354,7 +354,7 @@ requires-dist = [
     { name = "dateutils", specifier = ">=0.6.12" },
     { name = "gitpython", specifier = ">=3.1.45" },
     { name = "httpx2", specifier = ">=2.15.1" },
-    { name = "kurra", specifier = ">=3.1.3" },
+    { name = "kurra", specifier = ">=3.1.6" },
     { name = "rdf-delta", specifier = ">=0.2.5" },
     { name = "rdflib", specifier = ">=7.6.0" },
     { name = "typer", specifier = ">=0.27" },
@@ -373,7 +373,7 @@ dev = [
 
 [[package]]
 name = "kurra"
-version = "3.1.3"
+version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx2" },
@@ -384,9 +384,9 @@ dependencies = [
     { name = "sparqlib" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/da/c0cbb9d06d9f5c59988434626130cad4e8fbee458129f043c879907cb90b/kurra-3.1.3.tar.gz", hash = "sha256:564184ec0918b60c602c1a484963ba6fe1cd3f2245b628cc84d4f026ba462e01", size = 269291, upload-time = "2026-11-04T05:14:16.511Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3d/5f/6fc172491f621793c42390f26808c06cac6796fd2a94a0d443a30c8f7bcb/kurra-3.1.6.tar.gz", hash = "sha256:3d0aaba00b1f2665b3a6c102cd2e1db5568dd557134e8d0366308f7d545b80f1", size = 273274, upload-time = "2026-11-15T09:18:49.461Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/80/13/a005574a912111087dc5c8ff3f6647b00d4168cdce5039e9108e522beaf6/kurra-3.1.3-py3-none-any.whl", hash = "sha256:ea4c32ad08c7b198ae7390c5eb4f0d026c94e5aa901afb42683782f067e1aa1a", size = 52912, upload-time = "2026-11-04T05:14:14.795Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/92/d11628d1184da5481e9eed161d8d75103cbeb28f8a55a4e093898c52b24e/kurra-3.1.6-py3-none-any.whl", hash = "sha256:3dbfd5646d600cc4c4fa4877320f8bd30cfea953e452233ea5466fb7ced3333f", size = 54542, upload-time = "2026-11-15T09:18:47.793Z" },
 ]
 
 [[package]]

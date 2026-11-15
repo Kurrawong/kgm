@@ -28,6 +28,8 @@ Use `kgm validate manifest.ttl -r` (or `--rdf`) to check the syntax of every ref
 value. These checks use `kurra file reformat --check`, leave source files unchanged, and accept formatting differences.
 Resources marked `prez:ignore true` are skipped.
 
+Use `kgm validate manifest.ttl -x` (or `--use-rudof`) to request Rudof for manifest and artifact SHACL validation.
+Install `pyrudof` in the KGM environment to enable it. Without Rudof installed, Kurra warns and falls back to pySHACL.
 
 Run `kgm -h` to list commands, which will be something like this:
 
@@ -42,12 +44,12 @@ KGM top-level Command Line Interface. Ask for help (-h) for each Command
 ╰──────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────╮
 │ validate  Validate the structure and content of a KGM                  │
-│ sync      Synchronize a KGM's resources with loaded copies of them in  │
+│ sync      Synchronize a Manifest's resources with loaded copies of them in  │
 │           a SPARQL Endpoint                                                      │
 │ label     Discover labels missing from data in a in a KGM and patch    │
 │           them                                                                   │
 │ document  Create documentation from a KGM                              │
-│ load      Load a KGM's content into a file or DB                       │
+│ load      Load a Manifest's content into a file or DB                       │
 │ event     Event-based KGMs actions                                     │
 ╰──────────────────────────────────────────────────────────────────────────────────╯
 ```

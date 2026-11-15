@@ -8,10 +8,10 @@ from kgm.loader import load
 from kgm.rdf import load_dataset
 from kgm.syncer import get_sync_dataset
 
-app = typer.Typer(help="Load a KGM's content into a file or DB")
+app = typer.Typer(help="Load a Manifest's content into a file or DB")
 
 
-@app.command(name="sparql", help="Load a KGM's resources into a SPARQL Endpoint")
+@app.command(name="sparql", help="Load a Manifest's resources into a SPARQL Endpoint")
 def sparql_command(
     manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
     endpoint: str = typer.Argument(..., help="The URL of the SPARQL Endpoint"),
@@ -35,7 +35,9 @@ def sparql_command(
         )
 
 
-@app.command(name="file", help="Load a KGM's resources into a single RDF quads file")
+@app.command(
+    name="file", help="Load a Manifest's resources into a single RDF quads file"
+)
 def file_command(
     manifest: Path = typer.Argument(..., help="The path of the KGM file to be loaded"),
     file: Path = typer.Argument(

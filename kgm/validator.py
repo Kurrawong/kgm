@@ -1,4 +1,4 @@
-"""Validate a KGM file.
+"""Validate a KGM Manifest file and the content it links to.
 
 This script performs both SHACL validation to ensure the Manifest is valid according to the KGM
 specification (see https://prez.dev/manifest/) and checks that all the resources indicated by the Manifest
@@ -39,14 +39,18 @@ def _ensure_validator(iri: str) -> None:
         )
 
 
-def validate(manifest: Path, rdf: bool = False) -> Graph:
+def validate(manifest: Path, rdf: bool = False, *, use_rudof: bool = False) -> Graph:
     """Validates a manifest and any assets listed in it with a conformance claim.
 
     Uses validators known in the Semantic Background or supplied by the user.
 
+    By default pySHACL is used as the SHACL validation engine but Rudof can be selected instead. Rudof does not support
+    SHACL Advanced Features but is faster for large files and stricter in some ways.
+
     Args:
         manifest: path to a manifest file
         rdf: parse all referenced RDF artifacts using Kurra's reformat --check
+        use_rudof: request Rudof for manifest and artifact SHACL validation
 
     Returns:
         Graph of validated manifest
@@ -98,6 +102,7 @@ def validate(manifest: Path, rdf: bool = False) -> Graph:
     v = kurra.shacl.validate(
         [manifest_graph, load_graph(ME.parent / "mrr.ttl")],
         "https://prez.dev/manifest-validator",
+        use_rudof=use_rudof,
     )
     if not v[0]:
         raise ManifestValidationError(
@@ -172,7 +177,9 @@ def validate(manifest: Path, rdf: bool = False) -> Graph:
                     if isinstance(validator, Path):
                         with parsing_source(validator, "validator file"):
                             shapes = load_graph(validator)
-                    v = kurra.shacl.validate([data_graph, background_graph], shapes)
+                    v = kurra.shacl.validate(
+                        [data_graph, background_graph], shapes, use_rudof=use_rudof
+                    )
                     if not v[0]:
                         raise ManifestValidationError(
                             f"the artifact {manifest_root / file} is invalid according to validator {validator}:\n\n{v[2]}"
